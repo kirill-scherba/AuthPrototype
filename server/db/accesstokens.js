@@ -1,22 +1,22 @@
 var tokens = {};
 
 
-exports.find = function(key, done) {
+module.exports.find = function(key, done) {
     var token = tokens[key];
     return done(null, token);
 };
 
-exports.save = function(token, userID, clientID, done) {
+module.exports.save = function(token, userID, clientID, done) {
     tokens[token] = { userID: userID, clientID: clientID };
     return done(null);
 };
 
-exports.delete = function (key, done) {
+module.exports.delete = function (key, done) {
     delete tokens[key];
     return done(null);
 };
 
-exports.removeExpired = function (done) {
+module.exports.removeExpired = function (done) {
     var tokensToDelete = [];
     for (var key in tokens) {
         if (tokens.hasOwnProperty(key)) {
@@ -33,7 +33,7 @@ exports.removeExpired = function (done) {
     return done(null);
 };
 
-exports.removeAll = function (done) {
+module.exports.removeAll = function (done) {
     tokens = {};
     return done(null);
 };
