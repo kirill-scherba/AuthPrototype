@@ -15,7 +15,6 @@
   "devDependencies": {
     "mocha": "^2.2.1",
     "should": "^5.2.0",
-    "should-http": "0.0.2",
     "supertest": "^0.15.0"
   },
   "scripts": {

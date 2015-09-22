@@ -23,7 +23,4 @@ app.get('/api', function (req, res) {
 app.use('/api/auth', require('./auth'));
 
 
-
-var server = app.listen(3667);
-
-console.log('Server running at http://localhost:3667/');
+module.exports = app;
