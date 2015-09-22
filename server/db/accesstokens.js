@@ -1,13 +1,13 @@
 var tokens = {};
 
 
-module.exports.find = function(key, done) {
+module.exports.find = function (key, done) {
     var token = tokens[key];
     return done(null, token);
 };
 
-module.exports.save = function(token, userID, clientID, done) {
-    tokens[token] = { userID: userID, clientID: clientID };
+module.exports.save = function (token, expirationDate, userId, clientId, done) {
+    tokens[token] = {userId: userId, clientId: clientId, expirationDate: expirationDate};
     return done(null);
 };
 

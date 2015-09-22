@@ -6,8 +6,8 @@ module.exports.find = function (key, done) {
     return done(null, token);
 };
 
-module.exports.save = function (token, userID, clientID, done) {
-    tokens[token] = {userID: userID, clientID: clientID};
+module.exports.save = function (token, userId, clientId, done) {
+    tokens[token] = {userId: userId, clientId: clientId};
     return done(null);
 };
 
