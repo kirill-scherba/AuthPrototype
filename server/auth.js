@@ -92,9 +92,60 @@ router.post('/register', passport.authenticate('basic', {session: false}), funct
 });
 
 
-router.post('/login', function (req, res) {
-    res.send('auth');
+/**
+ * Вход пользователя по email
+ * Требуется basic авторизация по clientId и clientSecret
+ *
+ * @param email, hashPassword
+ * @return 200 + {userId, accessToken, refreshToken, expiresIn}
+ * @return 400 + INVALID_EMAIL
+ * @return 400 + WRONG_EMAIL_OR_PASSWORD
+ * @return 500
+ *
+ */
+router.post('/login', passport.authenticate('basic', {session: false}), function (req, res) {
+    if (!utils.validateEmail(req.body.email)) {
+        res.status(400).end("INVALID_EMAIL");
+        return;
+    }
+
+    db.users.findByEmail(req.body.email, function (err, user) {
+        if (err && err.code === "EMAIL_NOT_FOUND") {
+            res.status(400).end("WRONG_EMAIL_OR_PASSWORD");
+            return;
+        }
+
+        if (err) {
+            res.status(500).end();
+            return;
+        }
+
+        var accessToken = utils.token();
+        var expirationDate = utils.calculateExpirationDate();
+        db.accessTokens.save(accessToken, expirationDate, user.id, req.user.clientId, function (err) {
+            if (err) {
+                res.status(500).end();
+                return;
+            }
+
+            var refreshToken = utils.token();
+            db.refreshTokens.save(refreshToken, user.id, req.user.clientId, function (err) {
+                if (err) {
+                    res.status(500).end();
+                    return;
+                }
+
+                res.json({
+                    userId: user.id,
+                    accessToken: accessToken,
+                    refreshToken: refreshToken,
+                    expiresIn: expirationDate
+                });
+            });
+        });
+    });
 });
+
 
 router.post('/refresh', function (req, res) {
     res.send('auth');

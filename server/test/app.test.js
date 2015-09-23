@@ -80,5 +80,13 @@ describe('integration testing signup', function () {
                     done();
                 });
         });
+
+        it("should return 400 + EMAIL_EXISTS");
+    });
+
+    describe("login", function () {
+        it("should login");
+
+        it("should return 400 + WRONG_EMAIL_OR_PASSWORD");
     });
 });

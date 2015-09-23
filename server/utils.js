@@ -10,7 +10,11 @@ module.exports.uid = function () {
     return uuid.v4();
 };
 
-
+/**
+ * Генерировать токен
+ * @param {number} [size=32]
+ * @return {string}
+ */
 module.exports.token = function (size) {
     if (!size) {
         size = 32;
@@ -48,7 +52,15 @@ module.exports.validateEmail = function (email) {
     return re.test(email);
 };
 
-module.exports.calculateExpirationDate = function () {
-    var expiresIn = 3600;
+/**
+ * Посчитать дату истечения токена
+ * @param {number} [expiresIn=3600] - ms
+ * @return {Date}
+ */
+module.exports.calculateExpirationDate = function (expiresIn) {
+    if (expiresIn) {
+        expiresIn = 3600;
+    }
+
     return new Date(new Date().getTime() + (expiresIn * 1000));
 };

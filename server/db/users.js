@@ -1,27 +1,38 @@
 var users = {};
 
-var emailsSet = new Set();
+var emailsMap = new Map();
 
-module.exports.save = function (key, email, username, hashPassword, data, done) {
-    if (emailsSet.has(email)) { // проверим дублирование email
+module.exports.save = function (id, email, username, hashPassword, data, done) {
+    if (emailsMap.has(email)) { // проверим дублирование email
         done(new Error({code: "EMAIL_EXISTS", message: "Duplicate email"}));
         return;
     }
 
-    users[key] = {email: email, username: username, hashPassword: hashPassword, registerDate: new Date(), data: data};
-    emailsSet.add(email);
+    users[id] = {id: id, email: email, username: username, hashPassword: hashPassword, registerDate: new Date(), data: data};
+    emailsMap.set(email, id);
     done(null);
 };
 
-module.exports.find = function (key, done) {
-    var user = users[key];
+module.exports.find = function (id, done) {
+    var user = users[id];
     return done(null, user);
 };
 
-module.exports.delete = function (key, done) {
-    var email = users[key].email;
-    delete users[key];
-    emailsSet.delete(email); // удаляем еще из список с имейлами
+module.exports.findByEmail = function (email, done) {
+    var id = emailsMap.get(email);
+    if (!id) {
+        done(new Error({code: "EMAIL_NOT_FOUND", message: "Email not found"}));
+        return;
+    }
+
+    var user = users[id];
+    return done(null, user);
+};
+
+module.exports.delete = function (id, done) {
+    var email = users[id].email;
+    delete users[id];
+    emailsMap.delete(email); // удаляем еще из список с имейлами
 
     if (typeof done === 'function') {
         done(null);
