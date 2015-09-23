@@ -11,8 +11,12 @@ module.exports.uid = function () {
 };
 
 
-module.exports.token = function () {
-    return crypto.randomBytes(32).toString('hex');
+module.exports.token = function (size) {
+    if (!size) {
+        size = 32;
+    }
+
+    return crypto.randomBytes(size).toString('hex');
 };
 
 

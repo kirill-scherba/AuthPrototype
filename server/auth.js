@@ -34,14 +34,8 @@ router.post('/register', function (req, res) { // TODO BasicStrategy
         return;
     }
 
-    // TODO пароль уже будет приходить шифрованный
-    if (!utils.validatePassword(req.body.password)) {
-        res.status(400).end("WEAK_PASSWORD");
-        return;
-    }
-
     var userId = utils.uid();
-    db.users.save(userId, req.body.email, req.body.username, utils.getHash(req.body.password), {language: req.body.language}, function (err) {
+    db.users.save(userId, req.body.email, req.body.username, req.body.hashpassword, {language: req.body.language}, function (err) {
         if (err && err.code === "EMAIL_EXISTS") {
             res.status(400).end("EMAIL_EXISTS");
             return;

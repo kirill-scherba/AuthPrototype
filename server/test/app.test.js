@@ -1,8 +1,12 @@
+var crypto = require('crypto');
 var request = require('supertest');
-var should = require('should');
+require('should');
 var app = require('../app');
 var db = require('../db');
 
+function getHash(password) {
+    return crypto.createHash('sha512').update(password).digest('hex');
+}
 
 describe('integration testing signup', function () {
     var clientId;
@@ -60,7 +64,7 @@ describe('integration testing signup', function () {
         it("should register and return {user{}; access_token; refresh_token; expires_in}", function (done) {
             request(app)
                 .post('/api/auth/register')
-                .send({clientId: clientId, email: email, password: password, username: username, language: language})
+                .send({clientId: clientId, email: email, password: getHash(password), username: username, language: language})
                 .expect(200)
                 .end(function (err, res) {
                     if (err) {
