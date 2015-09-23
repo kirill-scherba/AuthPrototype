@@ -8,7 +8,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.raw());
 
-// require('./auth_strategies');
+require('./auth_strategies');
 app.use(passport.initialize());
 
 

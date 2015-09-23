@@ -1,6 +1,6 @@
 var crypto = require('crypto');
 var request = require('supertest');
-require('should');
+var should = require('should');
 var app = require('../app');
 var db = require('../db');
 
@@ -11,7 +11,7 @@ function getHash(password) {
 describe('integration testing signup', function () {
     var clientId;
     var clientSecret;
-    var userData = {a: 1};
+    var clientData = {a: 1};
 
     var email = "bob@gmail.com";
     var username = "bob";
@@ -24,7 +24,7 @@ describe('integration testing signup', function () {
         it('should return json body on register_client', function (done) {
             request(app)
                 .post('/api/auth/register_client')
-                .send({user_data: userData})
+                .send({client_data: clientData})
                 .expect('Content-Type', /application\/json/)
                 .expect(200)
                 .end(function (err, res) {
@@ -52,7 +52,7 @@ describe('integration testing signup', function () {
 
                 client.should.not.be.undefined;
                 client.secret.should.be.equal(clientSecret);
-                client.data.should.be.eql(userData);
+                client.data.should.be.eql(clientData);
 
                 done();
             });
@@ -64,7 +64,8 @@ describe('integration testing signup', function () {
         it("should register and return {user{}; access_token; refresh_token; expires_in}", function (done) {
             request(app)
                 .post('/api/auth/register')
-                .send({clientId: clientId, email: email, password: getHash(password), username: username, language: language})
+                .set('Authorization', 'Basic ' +  new Buffer(clientId + ':' + clientSecret).toString('base64'))
+                .send({email: email, hash_password: getHash(password), username: username, user_data: {language: language}})
                 .expect(200)
                 .end(function (err, res) {
                     if (err) {
