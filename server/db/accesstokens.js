@@ -37,3 +37,15 @@ module.exports.removeAll = function (done) {
     tokens = {};
     return done(null);
 };
+
+module.exports.deleteByClientIdExceptNewToken = function (clientId, newToken, done) {
+    for (var token in tokens) {
+        if (tokens.hasOwnProperty(token) && token !== newToken && tokens[token].clientId === clientId) {
+            delete tokens[token];
+        }
+    }
+
+    if (typeof done === 'function') {
+        done(null);
+    }
+};

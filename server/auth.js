@@ -54,8 +54,14 @@ router.post('/register', passport.authenticate('basic', {session: false}), funct
 
     var userId = utils.uid();
     db.users.save(userId, req.body.email, req.body.username, req.body.hashPassword, req.body.userData, function (err) {
-        if (err && err.code === "EMAIL_EXISTS") {
+        if (err && err.message === "EMAIL_EXISTS") {
             res.status(400).end("EMAIL_EXISTS");
+            return;
+        }
+
+        if (err) {
+            console.log(JSON.stringify(err));
+            res.status(500).end();
             return;
         }
 
@@ -98,6 +104,7 @@ router.post('/register', passport.authenticate('basic', {session: false}), funct
  *
  * @param email, hashPassword
  * @return 200 + {userId, accessToken, refreshToken, expiresIn}
+ * @return 400 + HASHPASSWORD_IS_EMPTY
  * @return 400 + INVALID_EMAIL
  * @return 400 + WRONG_EMAIL_OR_PASSWORD
  * @return 500
@@ -109,8 +116,13 @@ router.post('/login', passport.authenticate('basic', {session: false}), function
         return;
     }
 
+    if (!req.body.hashPassword) {
+        res.status(400).end("HASHPASSWORD_IS_EMPTY");
+        return;
+    }
+
     db.users.findByEmail(req.body.email, function (err, user) {
-        if (err && err.code === "EMAIL_NOT_FOUND") {
+        if (err && err.message === "EMAIL_NOT_FOUND" || !user || user.hashPassword !== req.body.hashPassword) {
             res.status(400).end("WRONG_EMAIL_OR_PASSWORD");
             return;
         }
@@ -141,14 +153,73 @@ router.post('/login', passport.authenticate('basic', {session: false}), function
                     refreshToken: refreshToken,
                     expiresIn: expirationDate
                 });
+
+                // удаляем для этого клиента старые токены
+                process.nextTick(function () {
+                    db.accessTokens.deleteByClientIdExceptNewToken(req.user.clientId, accessToken);
+                    db.refreshTokens.deleteByClientIdExceptNewToken(req.user.clientId, refreshToken);
+                });
             });
         });
     });
 });
 
 
-router.post('/refresh', function (req, res) {
-    res.send('auth');
+/**
+ * Замена токена по refreshToken
+ *
+ * @param refreshToken
+ * @return 400
+ * @return 401
+ * @return 500
+ */
+router.post('/refresh', passport.authenticate('basic', {session: false}), function (req, res) {
+    if (!req.body.refreshToken) {
+        res.status(400).end();
+        return;
+    }
+
+    db.refreshTokens.find(req.body.refreshToken, function (err, oldRefreshTokenRecord) {
+        if (err) {
+            res.status(500).end();
+            return;
+        }
+
+        if (!oldRefreshTokenRecord || oldRefreshTokenRecord.clientId !== req.user.clientId) {
+            res.status(401).end();
+            return;
+        }
+
+        var accessToken = utils.token();
+        var expirationDate = utils.calculateExpirationDate();
+        db.accessTokens.save(accessToken, expirationDate, oldRefreshTokenRecord.userId, req.user.clientId, function (err) {
+            if (err) {
+                res.status(500).end();
+                return;
+            }
+
+            var refreshToken = utils.token();
+            db.refreshTokens.save(refreshToken, oldRefreshTokenRecord.userId, req.user.clientId, function (err) {
+                if (err) {
+                    res.status(500).end();
+                    return;
+                }
+
+                res.json({
+                    userId: oldRefreshTokenRecord.userId,
+                    accessToken: accessToken,
+                    refreshToken: refreshToken,
+                    expiresIn: expirationDate
+                });
+
+                // удаляем для этого клиента старые токены
+                process.nextTick(function () {
+                    db.accessTokens.deleteByClientIdExceptNewToken(req.user.clientId, accessToken);
+                    db.refreshTokens.deleteByClientIdExceptNewToken(req.user.clientId, refreshToken);
+                });
+            });
+        });
+    });
 });
 
 

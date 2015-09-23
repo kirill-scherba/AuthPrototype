@@ -1,9 +1,9 @@
 var tokens = {};
 
 
-module.exports.find = function (key, done) {
-    var token = tokens[key];
-    return done(null, token);
+module.exports.find = function (token, done) {
+    var record = tokens[token];
+    return done(null, record);
 };
 
 module.exports.save = function (token, userId, clientId, done) {
@@ -11,7 +11,19 @@ module.exports.save = function (token, userId, clientId, done) {
     return done(null);
 };
 
-module.exports.delete = function (key, done) {
-    delete tokens[key];
+module.exports.delete = function (token, done) {
+    delete tokens[token];
     return done(null);
+};
+
+module.exports.deleteByClientIdExceptNewToken = function (clientId, newToken, done) {
+    for (var token in tokens) {
+        if (tokens.hasOwnProperty(token) && token !== newToken && tokens[token].clientId === clientId) {
+            delete tokens[token];
+        }
+    }
+
+    if (typeof done === 'function') {
+        done(null);
+    }
 };

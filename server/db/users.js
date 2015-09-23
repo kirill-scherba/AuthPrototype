@@ -4,7 +4,7 @@ var emailsMap = new Map();
 
 module.exports.save = function (id, email, username, hashPassword, data, done) {
     if (emailsMap.has(email)) { // проверим дублирование email
-        done(new Error({code: "EMAIL_EXISTS", message: "Duplicate email"}));
+        done(new Error("EMAIL_EXISTS"));
         return;
     }
 
@@ -21,7 +21,7 @@ module.exports.find = function (id, done) {
 module.exports.findByEmail = function (email, done) {
     var id = emailsMap.get(email);
     if (!id) {
-        done(new Error({code: "EMAIL_NOT_FOUND", message: "Email not found"}));
+        done(new Error("EMAIL_NOT_FOUND"));
         return;
     }
 
