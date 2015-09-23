@@ -12,30 +12,30 @@ router.get('/', function (req, res) {
 
 /**
  * Регистрация клиента (приложение, браузер и т.д. -user-agent)
- * @param client_data
+ * @param clientData
  * @return 400 + USER_DATA_IS_EMPTY
- * @return 200 + {client_id, client_secret}
+ * @return 200 + {clientId, clientSecret}
  */
 router.post('/register_client', function (req, res) {
-    if (!req.body.client_data) {
+    if (!req.body.clientData) {
         res.status(400).end("USER_DATA_IS_EMPTY");
         return;
     }
 
     var clientId = utils.uid();
     var clientSecret = utils.token(16);
-    db.clients.save(clientId, clientSecret, req.body.client_data);
+    db.clients.save(clientId, clientSecret, req.body.clientData);
 
-    res.json({client_id: clientId, client_secret: clientSecret});
+    res.json({clientId: clientId, clientSecret: clientSecret});
 });
 
 
 /**
  * Регистрация пользователя
- * Требуется basic авторизация по client_id и client_secret
+ * Требуется basic авторизация по clientId и clientSecret
  *
- * @param email, hash_password, username, user_data + req.user.clientId
- * @return 200 + {user_id, access_token, refresh_token, expires_in}
+ * @param email, hashPassword, username, userData + req.user.clientId
+ * @return 200 + {userId, accessToken, refreshToken, expiresIn}
  * @return 400
  * @return 400 + INVALID_EMAIL
  * @return 400 + EMAIL_EXISTS
@@ -47,13 +47,13 @@ router.post('/register', passport.authenticate('basic', {session: false}), funct
         return;
     }
 
-    if (!req.body.username || !req.body.hash_password) {
+    if (!req.body.username || !req.body.hashPassword) {
         res.status(400).end();
         return;
     }
 
     var userId = utils.uid();
-    db.users.save(userId, req.body.email, req.body.username, req.body.hash_password, req.body.user_data, function (err) {
+    db.users.save(userId, req.body.email, req.body.username, req.body.hashPassword, req.body.userData, function (err) {
         if (err && err.code === "EMAIL_EXISTS") {
             res.status(400).end("EMAIL_EXISTS");
             return;
@@ -77,10 +77,10 @@ router.post('/register', passport.authenticate('basic', {session: false}), funct
                 }
 
                 res.json({
-                    user_id: userId,
-                    access_token: accessToken,
-                    refresh_token: refreshToken,
-                    expires_in: expirationDate
+                    userId: userId,
+                    accessToken: accessToken,
+                    refreshToken: refreshToken,
+                    expiresIn: expirationDate
                 });
 
                 process.nextTick(function () {

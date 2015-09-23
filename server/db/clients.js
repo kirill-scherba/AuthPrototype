@@ -6,6 +6,6 @@ module.exports.find = function (key, done) {
     return done(null, client);
 };
 
-module.exports.save = function (id, secret, client_data) {
-    clients[id] = {id: id, secret: secret, data: client_data};
+module.exports.save = function (id, secret, clientData) {
+    clients[id] = {id: id, secret: secret, data: clientData};
 };

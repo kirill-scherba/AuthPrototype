@@ -2,13 +2,13 @@ var users = {};
 
 var emailsSet = new Set();
 
-module.exports.save = function (key, email, username, hashpassword, data, done) {
+module.exports.save = function (key, email, username, hashPassword, data, done) {
     if (emailsSet.has(email)) { // проверим дублирование email
         done(new Error({code: "EMAIL_EXISTS", message: "Duplicate email"}));
         return;
     }
 
-    users[key] = {email: email, username: username, hashPassword: hashpassword, registerDate: new Date(), data: data};
+    users[key] = {email: email, username: username, hashPassword: hashPassword, registerDate: new Date(), data: data};
     emailsSet.add(email);
     done(null);
 };

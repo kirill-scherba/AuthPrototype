@@ -24,7 +24,7 @@ describe('integration testing signup', function () {
         it('should return json body on register_client', function (done) {
             request(app)
                 .post('/api/auth/register_client')
-                .send({client_data: clientData})
+                .send({clientData: clientData})
                 .expect('Content-Type', /application\/json/)
                 .expect(200)
                 .end(function (err, res) {
@@ -32,11 +32,11 @@ describe('integration testing signup', function () {
                         return done(err);
                     }
                     res.body.should.be.json;
-                    res.body.client_id.should.not.be.empty;
-                    res.body.client_secret.should.not.be.empty;
+                    res.body.clientId.should.not.be.empty;
+                    res.body.clientSecret.should.not.be.empty;
 
-                    clientId = res.body.client_id;
-                    clientSecret = res.body.client_secret;
+                    clientId = res.body.clientId;
+                    clientSecret = res.body.clientSecret;
 
                     console.log(res.body);
                     done();
@@ -61,18 +61,18 @@ describe('integration testing signup', function () {
 
 
     describe("register", function () {
-        it("should register and return {user{}; access_token; refresh_token; expires_in}", function (done) {
+        it("should register and return {user{}; accessToken; refreshToken; expiresIn}", function (done) {
             request(app)
                 .post('/api/auth/register')
                 .set('Authorization', 'Basic ' +  new Buffer(clientId + ':' + clientSecret).toString('base64'))
-                .send({email: email, hash_password: getHash(password), username: username, user_data: {language: language}})
+                .send({email: email, hashPassword: getHash(password), username: username, userData: {language: language}})
                 .expect(200)
                 .end(function (err, res) {
                     if (err) {
                         return done(err);
                     }
                     res.body.should.be.json;
-                    res.body.should.have.properties(['access_token', 'refresh_token', 'expires_in', 'user_id']);
+                    res.body.should.have.properties(['accessToken', 'refreshToken', 'expiresIn', 'userId']);
 
                     userAuthData = res.body;
 
