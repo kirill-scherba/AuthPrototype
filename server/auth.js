@@ -223,6 +223,12 @@ router.post('/refresh', passport.authenticate('basic', {session: false}), functi
 });
 
 
+router.get('/me', passport.authenticate('bearer', {session: false}), function (req, res) {
+    console.log(req.user, req.scope);
+    res.json(req.user);
+});
+
+
 /**
  * TODO вспомогательные урлы
  *

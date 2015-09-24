@@ -174,16 +174,6 @@ describe('integration testing signup', function () {
     });
 
     describe("refresh", function () {
-        it("should not refresh tokens, return 401", function (done) {
-            request(app)
-                .post('/api/auth/refresh')
-                .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
-                .send({
-                    refreshToken: userAuthDataRegister.refreshToken
-                })
-                .expect(401, done);
-        });
-
         it("should refresh tokens", function (done) {
             request(app)
                 .post('/api/auth/refresh')
@@ -205,7 +195,45 @@ describe('integration testing signup', function () {
                     done();
                 });
         });
+
+        // повторно нельзя получить auth_data по refreshToken
+        it("should return 401 when you try get new auth_data(tokens) by used once refreshToken", function (done) {
+            request(app)
+                .post('/api/auth/refresh')
+                .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
+                .send({
+                    refreshToken: userAuthDataLogin.refreshToken
+                })
+                .expect(401, done);
+        });
     });
 
-    it("should return 401, old tokens already deleted"); // TODO call protected resource! проверка BearerStrategy
+    describe("check resource protection", function () {
+        it("should return 200 and user data", function (done) {
+            request(app)
+                .get('/api/auth/me')
+                .set('Authorization', 'Bearer ' + userAuthDataRefresh.accessToken)
+                .expect(200, done);
+        });
+
+        it("should return 401 on request by secure path (/api/oauth/me) with wrong token", function (done) {
+            request(app)
+                .get('/api/auth/me')
+                .set('Authorization', 'Bearer ' + userAuthDataRefresh.refreshToken)
+                .expect(401, done);
+        });
+
+        it("should return 401 on request by secure path with old(already deleted) token", function (done) {
+            request(app)
+                .get('/api/auth/me')
+                .set('Authorization', 'Bearer ' + userAuthDataLogin.accessToken)
+                .expect(401, done);
+        });
+
+        it("should return 401 on request by secure path without token", function (done) {
+            request(app)
+                .get('/api/auth/me')
+                .expect(401, done);
+        });
+    });
 });
