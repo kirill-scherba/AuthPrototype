@@ -3,6 +3,7 @@ var request = require('supertest');
 var should = require('should');
 var app = require('../app');
 var db = require('../db');
+var streamAuth = require('./../auth/stream');
 
 function getHash(password) {
     return crypto.createHash('sha512').update(password).digest('hex');
@@ -234,6 +235,53 @@ describe('integration testing signup', function () {
             request(app)
                 .get('/api/auth/me')
                 .expect(401, done);
+        });
+    });
+
+    describe("websocket", function () {
+        it("should authorize", function (done) {
+            streamAuth.check(clientId, clientSecret, userAuthDataRefresh.accessToken, function (err, client) {
+                if (err) {
+                    return done(err);
+                }
+
+                client.should.be.ok;
+                client.should.be.json;
+                done();
+            });
+        });
+
+        it("should not authorize with wrong clientId", function (done) {
+            streamAuth.check("111", clientSecret, userAuthDataRefresh.accessToken, function (err, client) {
+                if (err) {
+                    return done(err);
+                }
+
+                client.should.not.be.ok;
+                done();
+            });
+        });
+
+        it("should not authorize with wrong clientSecret", function (done) {
+            streamAuth.check(clientId, "111", userAuthDataRefresh.accessToken, function (err, client) {
+                if (err) {
+                    return done(err);
+                }
+
+                client.should.not.be.ok;
+                done();
+            });
+        });
+
+        it("should not authorize with wrong accessToken", function (done) {
+            streamAuth.check(clientId, clientSecret, "111", function (err, client) {
+                if (err) {
+                    return done(err);
+                }
+
+                client.should.not.be.ok;
+                done();
+            });
         });
     });
 });

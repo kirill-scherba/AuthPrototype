@@ -8,7 +8,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.raw());
 
-require('./auth_strategies');
+require('./auth/strategies');
 app.use(passport.initialize());
 
 
@@ -20,7 +20,7 @@ app.get('/api', function (req, res) {
     res.send('API is running');
 });
 
-app.use('/api/auth', require('./auth'));
+app.use('/api/auth', require('./auth/route'));
 
 
 module.exports = app;
