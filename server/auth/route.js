@@ -4,6 +4,7 @@ var utils = require('./../utils');
 var db = require('./../db/index');
 
 var router = express.Router();
+router.use('/facebook', require('./facebook'));
 
 router.get('/', function (req, res) {
     res.send('auth');

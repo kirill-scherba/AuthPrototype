@@ -9,11 +9,12 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.raw());
 
 require('./auth/strategies');
+//require('./auth/facebook/strategy'); // TODO включить когда авторизация через фейсбук заработает
 app.use(passport.initialize());
 
 
 app.get('/', function (req, res) {
-  res.send('Hello World!');
+    res.send('Hello World!');
 });
 
 app.get('/api', function (req, res) {
