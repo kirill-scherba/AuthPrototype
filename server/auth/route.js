@@ -224,12 +224,21 @@ router.post('/refresh', passport.authenticate('basic', {session: false}), functi
 
 
 router.get('/me', passport.authenticate('bearer', {session: false}), function (req, res) {
-    console.log(req.user, req.scope);
     res.json(req.user);
 });
 
 
+router.get('/logout', passport.authenticate('bearer', {session: false}), function (req, res) {
+    db.accessTokens.deleteByClientId(req.user.clientId);
+    db.refreshTokens.deleteByClientId(req.user.clientId);
+
+    res.status(200).end();
+});
+
+
+
 /**
+ * TODO 1) social   2) 2fa   3) БД   4) шифрование/логирование/рефакторинг  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  * TODO вспомогательные урлы
  *
  /change_password

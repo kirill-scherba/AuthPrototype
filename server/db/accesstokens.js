@@ -49,3 +49,15 @@ module.exports.deleteByClientIdExceptNewToken = function (clientId, newToken, do
         done(null);
     }
 };
+
+module.exports.deleteByClientId = function (clientId, done) {
+    for (var token in tokens) {
+        if (tokens.hasOwnProperty(token) && tokens[token].clientId === clientId) {
+            delete tokens[token];
+        }
+    }
+
+    if (typeof done === 'function') {
+        done(null);
+    }
+};

@@ -220,7 +220,7 @@ describe('integration testing signup', function () {
         it("should return 401 on request by secure path (/api/oauth/me) with wrong token", function (done) {
             request(app)
                 .get('/api/auth/me')
-                .set('Authorization', 'Bearer ' + userAuthDataRefresh.refreshToken)
+                .set('Authorization', 'Bearer ' + 'ewfdsgfgdfghfdgsdgdfsgdfsfg')
                 .expect(401, done);
         });
 
@@ -282,6 +282,32 @@ describe('integration testing signup', function () {
                 client.should.not.be.ok;
                 done();
             });
+        });
+    });
+
+    describe("logout", function () {
+        it("should logout", function (done) {
+            request(app)
+                .get('/api/auth/logout')
+                .set('Authorization', 'Bearer ' + userAuthDataRefresh.accessToken)
+                .expect(200, done);
+        });
+
+        it("should return 401 on request by secure path after logout", function (done) {
+            request(app)
+                .get('/api/auth/me')
+                .set('Authorization', 'Bearer ' + userAuthDataRefresh.accessToken)
+                .expect(401, done);
+        });
+
+        it("should return 401 when you try get new auth_data(tokens) after logout", function (done) {
+            request(app)
+                .post('/api/auth/refresh')
+                .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
+                .send({
+                    refreshToken: userAuthDataRefresh.refreshToken
+                })
+                .expect(401, done);
         });
     });
 });
