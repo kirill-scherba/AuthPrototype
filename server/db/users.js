@@ -3,7 +3,7 @@ var users = {};
 var emailsMap = new Map();
 
 module.exports.save = function (id, email, username, hashPassword, data, done) {
-    if (emailsMap.has(email)) { // проверим дублирование email
+    if (emailsMap.has(email)) { // РїСЂРѕРІРµСЂРёРј РґСѓР±Р»РёСЂРѕРІР°РЅРёРµ email
         done(new Error("EMAIL_EXISTS"));
         return;
     }
@@ -32,7 +32,7 @@ module.exports.findByEmail = function (email, done) {
 module.exports.delete = function (id, done) {
     var email = users[id].email;
     delete users[id];
-    emailsMap.delete(email); // удаляем еще из список с имейлами
+    emailsMap.delete(email); // СѓРґР°Р»СЏРµРј РµС‰Рµ РёР· СЃРїРёСЃРѕРє СЃ РёРјРµР№Р»Р°РјРё
 
     if (typeof done === 'function') {
         done(null);

@@ -197,7 +197,7 @@ describe('integration testing signup', function () {
                 });
         });
 
-        // повторно нельзя получить auth_data по refreshToken
+        // РїРѕРІС‚РѕСЂРЅРѕ РЅРµР»СЊР·СЏ РїРѕР»СѓС‡РёС‚СЊ auth_data РїРѕ refreshToken
         it("should return 401 when you try get new auth_data(tokens) by used once refreshToken", function (done) {
             request(app)
                 .post('/api/auth/refresh')

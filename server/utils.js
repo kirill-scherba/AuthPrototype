@@ -2,7 +2,7 @@ var crypto = require('crypto');
 var uuid = require('node-uuid');
 
 
-// ðåãóëÿðêà äëÿ âàëèäàöèè email
+// Ñ€ÐµÐ³ÑƒÐ»ÑÑ€ÐºÐ° Ð´Ð»Ñ Ð²Ð°Ð»Ð¸Ð´Ð°Ñ†Ð¸Ð¸ email
 var re = /^([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22))*\x40([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d))*$/;
 
 
@@ -11,7 +11,7 @@ module.exports.uid = function () {
 };
 
 /**
- * Ãåíåðèðîâàòü òîêåí
+ * Ð“ÐµÐ½ÐµÑ€Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ Ñ‚Ð¾ÐºÐµÐ½
  * @param {number} [size=32]
  * @return {string}
  */
@@ -24,15 +24,15 @@ module.exports.token = function (size) {
 };
 
 
-/** õåø ñóììà îò ïàðîëÿ äëÿ åãî õðàíåíèÿ */
+/** Ñ…ÐµÑˆ ÑÑƒÐ¼Ð¼Ð° Ð¾Ñ‚ Ð¿Ð°Ñ€Ð¾Ð»Ñ Ð´Ð»Ñ ÐµÐ³Ð¾ Ñ…Ñ€Ð°Ð½ÐµÐ½Ð¸Ñ */
 module.exports.getHash = function (password) {
     return crypto.createHash('sha512').update(password).digest('hex');
 };
 
 
-/** ãåíåðàöèÿ òîêåíà (÷àñòü url) äëÿ ïîäòâåðæäåíèÿ ïî email */
+/** Ð³ÐµÐ½ÐµÑ€Ð°Ñ†Ð¸Ñ Ñ‚Ð¾ÐºÐµÐ½Ð° (Ñ‡Ð°ÑÑ‚ÑŒ url) Ð´Ð»Ñ Ð¿Ð¾Ð´Ñ‚Ð²ÐµÑ€Ð¶Ð´ÐµÐ½Ð¸Ñ Ð¿Ð¾ email */
 module.exports.emailToken = function (userStr) {
-    //ðàíäîì + timestamp + e-mail + ñîëü
+    //Ñ€Ð°Ð½Ð´Ð¾Ð¼ + timestamp + e-mail + ÑÐ¾Ð»ÑŒ
     var shasum = crypto.createHash('sha512');
     shasum.update(Math.floor((Math.random() * 100) + 137).toString());
     shasum.update(Date.now().toString());
@@ -42,7 +42,7 @@ module.exports.emailToken = function (userStr) {
 };
 
 
-/** Ïàðîëü äîëæåí ñîäåðæàòü îò 4 äî 20 ñèìâîëîâ */
+/** ÐŸÐ°Ñ€Ð¾Ð»ÑŒ Ð´Ð¾Ð»Ð¶ÐµÐ½ ÑÐ¾Ð´ÐµÑ€Ð¶Ð°Ñ‚ÑŒ Ð¾Ñ‚ 4 Ð´Ð¾ 20 ÑÐ¸Ð¼Ð²Ð¾Ð»Ð¾Ð² */
 module.exports.validatePassword = function (password) {
     return password && password.length >= 4 && password.length <= 20;
 };
@@ -53,7 +53,7 @@ module.exports.validateEmail = function (email) {
 };
 
 /**
- * Ïîñ÷èòàòü äàòó èñòå÷åíèÿ òîêåíà
+ * ÐŸÐ¾ÑÑ‡Ð¸Ñ‚Ð°Ñ‚ÑŒ Ð´Ð°Ñ‚Ñƒ Ð¸ÑÑ‚ÐµÑ‡ÐµÐ½Ð¸Ñ Ñ‚Ð¾ÐºÐµÐ½Ð°
  * @param {number} [expiresIn=3600] - ms
  * @return {Date}
  */

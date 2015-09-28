@@ -12,7 +12,7 @@ router.get('/', function (req, res) {
 
 
 /**
- * Регистрация клиента (приложение, браузер и т.д. -user-agent)
+ * Р РµРіРёСЃС‚СЂР°С†РёСЏ РєР»РёРµРЅС‚Р° (РїСЂРёР»РѕР¶РµРЅРёРµ, Р±СЂР°СѓР·РµСЂ Рё С‚.Рґ. -user-agent)
  * @param clientData
  * @return 400 + USER_DATA_IS_EMPTY
  * @return 200 + {clientId, clientSecret}
@@ -32,8 +32,8 @@ router.post('/register_client', function (req, res) {
 
 
 /**
- * Регистрация пользователя
- * Требуется basic авторизация по clientId и clientSecret
+ * Р РµРіРёСЃС‚СЂР°С†РёСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+ * РўСЂРµР±СѓРµС‚СЃСЏ basic Р°РІС‚РѕСЂРёР·Р°С†РёСЏ РїРѕ clientId Рё clientSecret
  *
  * @param email, hashPassword, username, userData + req.user.clientId
  * @return 200 + {userId, accessToken, refreshToken, expiresIn}
@@ -100,8 +100,8 @@ router.post('/register', passport.authenticate('basic', {session: false}), funct
 
 
 /**
- * Вход пользователя по email
- * Требуется basic авторизация по clientId и clientSecret
+ * Р’С…РѕРґ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РїРѕ email
+ * РўСЂРµР±СѓРµС‚СЃСЏ basic Р°РІС‚РѕСЂРёР·Р°С†РёСЏ РїРѕ clientId Рё clientSecret
  *
  * @param email, hashPassword
  * @return 200 + {userId, accessToken, refreshToken, expiresIn}
@@ -155,7 +155,7 @@ router.post('/login', passport.authenticate('basic', {session: false}), function
                     expiresIn: expirationDate
                 });
 
-                // удаляем для этого клиента старые токены
+                // СѓРґР°Р»СЏРµРј РґР»СЏ СЌС‚РѕРіРѕ РєР»РёРµРЅС‚Р° СЃС‚Р°СЂС‹Рµ С‚РѕРєРµРЅС‹
                 process.nextTick(function () {
                     db.accessTokens.deleteByClientIdExceptNewToken(req.user.clientId, accessToken);
                     db.refreshTokens.deleteByClientIdExceptNewToken(req.user.clientId, refreshToken);
@@ -167,7 +167,7 @@ router.post('/login', passport.authenticate('basic', {session: false}), function
 
 
 /**
- * Замена токена по refreshToken
+ * Р—Р°РјРµРЅР° С‚РѕРєРµРЅР° РїРѕ refreshToken
  *
  * @param refreshToken
  * @return 400
@@ -213,7 +213,7 @@ router.post('/refresh', passport.authenticate('basic', {session: false}), functi
                     expiresIn: expirationDate
                 });
 
-                // удаляем для этого клиента старые токены
+                // СѓРґР°Р»СЏРµРј РґР»СЏ СЌС‚РѕРіРѕ РєР»РёРµРЅС‚Р° СЃС‚Р°СЂС‹Рµ С‚РѕРєРµРЅС‹
                 process.nextTick(function () {
                     db.accessTokens.deleteByClientIdExceptNewToken(req.user.clientId, accessToken);
                     db.refreshTokens.deleteByClientIdExceptNewToken(req.user.clientId, refreshToken);
@@ -239,8 +239,8 @@ router.get('/logout', passport.authenticate('bearer', {session: false}), functio
 
 
 /**
- * TODO 1) social   2) 2fa   3) БД   4) шифрование/логирование/рефакторинг  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- * TODO вспомогательные урлы
+ * TODO 1) social   2) 2fa   3) Р‘Р”   4) С€РёС„СЂРѕРІР°РЅРёРµ/Р»РѕРіРёСЂРѕРІР°РЅРёРµ/СЂРµС„Р°РєС‚РѕСЂРёРЅРі  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ * TODO РІСЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Рµ СѓСЂР»С‹
  *
  /change_password
  /resend_email

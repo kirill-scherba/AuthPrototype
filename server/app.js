@@ -9,7 +9,7 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.raw());
 
 require('./auth/strategies');
-//require('./auth/facebook/strategy'); // TODO включить когда авторизация через фейсбук заработает
+//require('./auth/facebook/strategy'); // TODO РІРєР»СЋС‡РёС‚СЊ РєРѕРіРґР° Р°РІС‚РѕСЂРёР·Р°С†РёСЏ С‡РµСЂРµР· С„РµР№СЃР±СѓРє Р·Р°СЂР°Р±РѕС‚Р°РµС‚
 app.use(passport.initialize());
 
 
@@ -21,7 +21,7 @@ app.get('/api', function (req, res) {
     res.send('API is running');
 });
 
-app.use('/api/auth', require('./auth/route'));
+app.use('/api/auth', require('./auth/index'));
 
 
 module.exports = app;

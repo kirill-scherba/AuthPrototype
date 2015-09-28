@@ -38,7 +38,7 @@ passport.use(new BearerStrategy(
                     return done(err);
                 });
             } else {
-                if (!token.userId) { // сомнительное условие т.к. поле userId обязательное
+                if (!token.userId) { // СЃРѕРјРЅРёС‚РµР»СЊРЅРѕРµ СѓСЃР»РѕРІРёРµ С‚.Рє. РїРѕР»Рµ userId РѕР±СЏР·Р°С‚РµР»СЊРЅРѕРµ
                     return done(null, false);
                 }
 

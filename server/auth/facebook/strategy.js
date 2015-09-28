@@ -10,14 +10,14 @@ passport.use(new FacebookStrategy({
         passReqToCallback : true
     },
     function(req, accessToken, refreshToken, profile, done) {
-        done(new Error('not implemented')); // TODO сохранение и проверка лользователя по id социальной сети
+        done(new Error('not implemented')); // TODO СЃРѕС…СЂР°РЅРµРЅРёРµ Рё РїСЂРѕРІРµСЂРєР° Р»РѕР»СЊР·РѕРІР°С‚РµР»СЏ РїРѕ id СЃРѕС†РёР°Р»СЊРЅРѕР№ СЃРµС‚Рё
 
 
         // ================================================================================
         //// check if the user is already logged in
         //if (!req.user) {
-        //    // ищем пользователя по profile.id, если находим, то отдаем его
-        //    // инача если можно регаться через соц сеть, то регаем его и отдаем юзера
+        //    // РёС‰РµРј РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РїРѕ profile.id, РµСЃР»Рё РЅР°С…РѕРґРёРј, С‚Рѕ РѕС‚РґР°РµРј РµРіРѕ
+        //    // РёРЅР°С‡Р° РµСЃР»Рё РјРѕР¶РЅРѕ СЂРµРіР°С‚СЊСЃСЏ С‡РµСЂРµР· СЃРѕС† СЃРµС‚СЊ, С‚Рѕ СЂРµРіР°РµРј РµРіРѕ Рё РѕС‚РґР°РµРј СЋР·РµСЂР°
         //
         //    User.findOne({ 'facebook.id' : profile.id }, function(err, user) {
         //        if (user) {
@@ -32,7 +32,7 @@ passport.use(new FacebookStrategy({
 
 
         // ================================================================================
-        //// другой пример:
+        //// РґСЂСѓРіРѕР№ РїСЂРёРјРµСЂ:
         //User.findOne({
         //    'google.id': profile.id
         //}, function(err, user) {
