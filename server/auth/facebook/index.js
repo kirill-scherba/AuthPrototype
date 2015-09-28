@@ -1,5 +1,6 @@
 // https://github.com/scotch-io/easy-node-authentication/blob/linking/app/routes.js
 // https://scotch.io/tutorials/easy-node-authentication-linking-all-accounts-together
+//http://stackoverflow.com/a/11213722
 
 var express = require('express');
 var passport = require('passport');

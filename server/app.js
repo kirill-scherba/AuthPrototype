@@ -9,7 +9,8 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.raw());
 
 require('./auth/strategies');
-//require('./auth/facebook/strategy'); // TODO включить когда авторизация через фейсбук заработает
+require('./auth/facebook/strategy');
+
 app.use(passport.initialize());
 
 

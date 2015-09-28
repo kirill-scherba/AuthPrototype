@@ -41,7 +41,6 @@ describe('integration testing signup', function () {
                     clientId = res.body.clientId;
                     clientSecret = res.body.clientSecret;
 
-                    console.log(res.body);
                     done();
                 });
         });
@@ -51,7 +50,6 @@ describe('integration testing signup', function () {
                 if (err) {
                     return done(err);
                 }
-                console.log(client);
 
                 client.should.not.be.undefined;
                 client.secret.should.be.equal(clientSecret);
@@ -61,7 +59,6 @@ describe('integration testing signup', function () {
             });
         });
     });
-
 
     describe("register", function () {
         it("should register and return {user{}; accessToken; refreshToken; expiresIn}", function (done) {
@@ -80,11 +77,13 @@ describe('integration testing signup', function () {
                         return done(err);
                     }
                     res.body.should.be.json;
-                    res.body.should.have.properties(['accessToken', 'refreshToken', 'expiresIn', 'userId']);
+                    res.body.accessToken.should.not.be.empty;
+                    res.body.refreshToken.should.not.be.empty;
+                    res.body.expiresIn.should.not.be.empty;
+                    res.body.userId.should.not.be.empty;
 
                     userAuthDataRegister = res.body;
 
-                    console.log(res.body);
                     done();
                 });
         });
@@ -131,11 +130,13 @@ describe('integration testing signup', function () {
                         return done(err);
                     }
                     res.body.should.be.json;
-                    res.body.should.have.properties(['accessToken', 'refreshToken', 'expiresIn', 'userId']);
+                    res.body.accessToken.should.not.be.empty;
+                    res.body.refreshToken.should.not.be.empty;
+                    res.body.expiresIn.should.not.be.empty;
+                    res.body.userId.should.not.be.empty;
 
                     userAuthDataLogin = res.body;
 
-                    console.log(res.body);
                     done();
                 });
         });
@@ -188,11 +189,13 @@ describe('integration testing signup', function () {
                         return done(err);
                     }
                     res.body.should.be.json;
-                    res.body.should.have.properties(['accessToken', 'refreshToken', 'expiresIn', 'userId']);
+                    res.body.accessToken.should.not.be.empty;
+                    res.body.refreshToken.should.not.be.empty;
+                    res.body.expiresIn.should.not.be.empty;
+                    res.body.userId.should.not.be.empty;
 
                     userAuthDataRefresh = res.body;
 
-                    console.log(res.body);
                     done();
                 });
         });
@@ -308,6 +311,15 @@ describe('integration testing signup', function () {
                     refreshToken: userAuthDataRefresh.refreshToken
                 })
                 .expect(401, done);
+        });
+    });
+
+    describe("facebook", function () {
+        it("facebook auth request", function (done) {
+            request(app)
+                 .get('/api/auth/facebook')
+                .set('Authorization', 'Bearer ' + userAuthDataRefresh.accessToken)
+                .expect(200, done);
         });
     });
 });

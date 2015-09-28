@@ -58,7 +58,7 @@ module.exports.validateEmail = function (email) {
  * @return {Date}
  */
 module.exports.calculateExpirationDate = function (expiresIn) {
-    if (expiresIn) {
+    if (!expiresIn) {
         expiresIn = 3600;
     }
 

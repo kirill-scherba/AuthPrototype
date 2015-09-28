@@ -5,11 +5,12 @@ var config = require('./../config');
 
 passport.use(new FacebookStrategy({
         clientID: config.facebook.clientId,
-        clientSecret: config.facebook.clientDecret,
+        clientSecret: config.facebook.clientSecret,
         callbackURL:  config.facebook.callbackURL,
         passReqToCallback : true
     },
     function(req, accessToken, refreshToken, profile, done) {
+        console.log("req.user", req.user);
         done(new Error('not implemented')); // TODO сохранение и проверка лользователя по id социальной сети
 
 
