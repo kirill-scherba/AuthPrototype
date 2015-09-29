@@ -1,7 +1,9 @@
 var express = require('express');
 var passport = require('passport');
+var base32 = require('thirty-two');
 var utils = require('./../utils');
 var db = require('./../db/index');
+var config = require('./../config');
 
 var router = express.Router();
 router.use('/facebook', require('./facebook'));
@@ -133,16 +135,11 @@ router.post('/login', passport.authenticate('basic', {session: false}), function
             return;
         }
 
-        var accessToken = utils.token();
-        var expirationDate = utils.calculateExpirationDate();
-        db.accessTokens.save(accessToken, expirationDate, user.id, req.user.clientId, function (err) {
-            if (err) {
-                res.status(500).end();
-                return;
-            }
 
-            var refreshToken = utils.token();
-            db.refreshTokens.save(refreshToken, user.id, req.user.clientId, function (err) {
+        if (user.twoFactor) {
+            var temporaryToken = utils.token();
+            var temporaryExpirationDate = utils.calculateExpirationDate(config.temporaryTokenExpiresIn);
+            db.temporaryTokens.save(temporaryToken, temporaryExpirationDate, user.id, req.user.clientId, function (err) {
                 if (err) {
                     res.status(500).end();
                     return;
@@ -150,18 +147,46 @@ router.post('/login', passport.authenticate('basic', {session: false}), function
 
                 res.json({
                     userId: user.id,
-                    accessToken: accessToken,
-                    refreshToken: refreshToken,
-                    expiresIn: expirationDate
+                    temporaryToken: temporaryToken,
+                    expiresIn: temporaryExpirationDate
                 });
 
                 // удаляем для этого клиента старые токены
                 process.nextTick(function () {
-                    db.accessTokens.deleteByClientIdExceptNewToken(req.user.clientId, accessToken);
-                    db.refreshTokens.deleteByClientIdExceptNewToken(req.user.clientId, refreshToken);
+                    db.temporaryTokens.deleteByClientIdExceptNewToken(req.user.clientId, temporaryToken);
                 });
             });
-        });
+        } else {
+            var accessToken = utils.token();
+            var expirationDate = utils.calculateExpirationDate();
+            db.accessTokens.save(accessToken, expirationDate, user.id, req.user.clientId, function (err) {
+                if (err) {
+                    res.status(500).end();
+                    return;
+                }
+
+                var refreshToken = utils.token();
+                db.refreshTokens.save(refreshToken, user.id, req.user.clientId, function (err) {
+                    if (err) {
+                        res.status(500).end();
+                        return;
+                    }
+
+                    res.json({
+                        userId: user.id,
+                        accessToken: accessToken,
+                        refreshToken: refreshToken,
+                        expiresIn: expirationDate
+                    });
+
+                    // удаляем для этого клиента старые токены
+                    process.nextTick(function () {
+                        db.accessTokens.deleteByClientIdExceptNewToken(req.user.clientId, accessToken);
+                        db.refreshTokens.deleteByClientIdExceptNewToken(req.user.clientId, refreshToken);
+                    });
+                });
+            });
+        }
     });
 });
 
@@ -237,6 +262,57 @@ router.get('/logout', passport.authenticate('bearer', {session: false}), functio
 });
 
 
+/**
+ * Установить двухфакторную авторизацию
+ *
+ * bearer стратегия отдает побъект пользователя
+ */
+router.get('/setup-two-factor', passport.authenticate('bearer', {session: false}), function (req, res) {
+    var encodedKey;
+    var otpUrl;
+    var qrImage;
+
+    if (req.user.twoFactor) {
+        // two-factor auth has already been setup
+        encodedKey = base32.encode(req.user.twoFactor.key);
+
+        // generate QR code for scanning into Google Authenticator
+        // reference: https://code.google.com/p/google-authenticator/wiki/KeyUriFormat
+        otpUrl = 'otpauth://totp/' + req.user.email + '?secret=' + encodedKey + '&period=' + req.user.twoFactor.period;
+        qrImage = 'https://chart.googleapis.com/chart?chs=166x166&chld=L|0&cht=qr&chl=' + encodeURIComponent(otpUrl);
+
+        res.json({user: req.user.id, key: encodedKey.toString(), qrImage: qrImage});
+    } else {
+        // new two-factor setup.  generate and save a secret key
+        var key = utils.token(10);
+        encodedKey = base32.encode(key);
+
+        var period = config.twoFactorPeriod;
+
+        // generate QR code for scanning into Google Authenticator
+        // reference: https://code.google.com/p/google-authenticator/wiki/KeyUriFormat
+        otpUrl = 'otpauth://totp/' + req.user.email + '?secret=' + encodedKey + '&period=' + period;
+        qrImage = 'https://chart.googleapis.com/chart?chs=166x166&chld=L|0&cht=qr&chl=' + encodeURIComponent(otpUrl);
+
+        db.users.setTwoFactor(req.user.id, {key: key, period: period}, function (err) {
+            if (err) {
+                res.status(500).end();
+                return;
+            }
+
+            res.json({user: req.user.id, key: encodedKey.toString(), qrImage: qrImage});
+        });
+    }
+});
+
+
+router.post('/login-otp',
+    passport.authenticate('temporary-bearer', {session: false}), // получает юзера и пробрасывает в totp стратегию
+    passport.authenticate('totp', {session: false}),
+    function (req, res) {
+        res.send('auth');
+        // TODO выдача токенов
+    });
 
 /**
  * TODO 1) social   2) 2fa   3) БД   4) шифрование/логирование/рефакторинг  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -246,9 +322,7 @@ router.get('/logout', passport.authenticate('bearer', {session: false}), functio
  /resend_email
  /verify
  /restore
- router.post('/login-otp', function (req, res) {
-    res.send('auth');
- });
+
  */
 
 module.exports = router;

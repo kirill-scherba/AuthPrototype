@@ -3,5 +3,8 @@
     "clientId": 1,
     "clientSecret": "secret",
     "callbackURL": "http://localhost/api/auth/facebook/callback"
-  }
+  },
+  "accessTokenExpiresIn": 3600,
+  "temporaryTokenExpiresIn": 600,
+  "twoFactorPeriod": 30
 }

@@ -39,6 +39,14 @@ module.exports.delete = function (id, done) {
     }
 };
 
+module.exports.setTwoFactor = function (id, twoFactor, done) {
+    users[id].twoFactor = twoFactor;
+
+    if (typeof done === 'function') {
+        done(null);
+    }
+};
+
 //module.exports.findByUsername = function (username, done) {
 //    for (var i in users) {
 //        if (users.hasOwnProperty(i)) {

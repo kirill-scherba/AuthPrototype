@@ -10,10 +10,13 @@
     "passport": "^0.3.0",
     "passport-facebook": "^2.0.0",
     "passport-http": "^0.3.0",
-    "passport-http-bearer": "^1.0.1"
+    "passport-http-bearer": "^1.0.1",
+    "passport-totp": "0.0.2",
+    "thirty-two": "0.0.2"
   },
   "devDependencies": {
     "mocha": "^2.2.1",
+    "otplib": "^3.0.1",
     "should": "^5.2.0",
     "supertest": "^0.15.0"
   },
