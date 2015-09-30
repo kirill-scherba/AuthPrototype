@@ -52,6 +52,7 @@ passport.use(new BearerStrategy(
                         return done(null, false);
                     }
 
+                    user.clientId = token.clientId;
                     return done(null, user);
                 });
             }
@@ -88,6 +89,7 @@ passport.use('temporary-bearer', new BearerStrategy(
                         return done(null, false);
                     }
 
+                    user.clientId = token.clientId;
                     return done(null, user);
                 });
             }
@@ -96,13 +98,13 @@ passport.use('temporary-bearer', new BearerStrategy(
 ));
 
 
-passport.use(new TotpStrategy(
+passport.use(new TotpStrategy({window: 1}, // TODO время жизни кода 2 минуты
     function (user, done) {
         // user получен через temporary-bearer стратегию
         if (!user) {
             return done(null, false);
         }
-        console.log(user.twoFactor);
+
         return done(null, user.twoFactor.key, user.twoFactor.period);
     }
 ));

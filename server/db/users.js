@@ -8,7 +8,7 @@ module.exports.save = function (id, email, username, hashPassword, data, done) {
         return;
     }
 
-    users[id] = {id: id, email: email, username: username, hashPassword: hashPassword, registerDate: new Date(), data: data};
+    users[id] = {userId: id, email: email, username: username, hashPassword: hashPassword, registerDate: new Date(), data: data};
     emailsMap.set(email, id);
     done(null);
 };

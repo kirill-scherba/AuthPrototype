@@ -1,4 +1,4 @@
-auth_data = access_token; refresh_token; expires_in
+auth_data = user_id; access_token; refresh_token; expires_in
 
 ===============================================
 == РЕГИСТРАЦИЯ

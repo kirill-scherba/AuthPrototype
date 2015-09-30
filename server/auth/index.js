@@ -63,7 +63,6 @@ router.post('/register', passport.authenticate('basic', {session: false}), funct
         }
 
         if (err) {
-            console.log(JSON.stringify(err));
             res.status(500).end();
             return;
         }
@@ -99,6 +98,40 @@ router.post('/register', passport.authenticate('basic', {session: false}), funct
         });
     });
 });
+
+
+function generateAuthTokens(res, userId, clientId) {
+    var accessToken = utils.token();
+    var expirationDate = utils.calculateExpirationDate();
+    db.accessTokens.save(accessToken, expirationDate, userId, clientId, function (err) {
+        if (err) {
+            res.status(500).end();
+            return;
+        }
+
+        var refreshToken = utils.token();
+        db.refreshTokens.save(refreshToken, userId, clientId, function (err) {
+            if (err) {
+                res.status(500).end();
+                return;
+            }
+
+            res.json({
+                userId: userId,
+                accessToken: accessToken,
+                refreshToken: refreshToken,
+                expiresIn: expirationDate
+            });
+
+
+            // удаляем для этого клиента старые токены
+            process.nextTick(function () {
+                db.accessTokens.deleteByClientIdExceptNewToken(clientId, accessToken);
+                db.refreshTokens.deleteByClientIdExceptNewToken(clientId, refreshToken);
+            });
+        });
+    });
+}
 
 
 /**
@@ -139,14 +172,14 @@ router.post('/login', passport.authenticate('basic', {session: false}), function
         if (user.twoFactor) {
             var temporaryToken = utils.token();
             var temporaryExpirationDate = utils.calculateExpirationDate(config.temporaryTokenExpiresIn);
-            db.temporaryTokens.save(temporaryToken, temporaryExpirationDate, user.id, req.user.clientId, function (err) {
+            db.temporaryTokens.save(temporaryToken, temporaryExpirationDate, user.userId, req.user.clientId, function (err) {
                 if (err) {
                     res.status(500).end();
                     return;
                 }
 
                 res.json({
-                    userId: user.id,
+                    userId: user.userId,
                     temporaryToken: temporaryToken,
                     expiresIn: temporaryExpirationDate
                 });
@@ -157,35 +190,7 @@ router.post('/login', passport.authenticate('basic', {session: false}), function
                 });
             });
         } else {
-            var accessToken = utils.token();
-            var expirationDate = utils.calculateExpirationDate();
-            db.accessTokens.save(accessToken, expirationDate, user.id, req.user.clientId, function (err) {
-                if (err) {
-                    res.status(500).end();
-                    return;
-                }
-
-                var refreshToken = utils.token();
-                db.refreshTokens.save(refreshToken, user.id, req.user.clientId, function (err) {
-                    if (err) {
-                        res.status(500).end();
-                        return;
-                    }
-
-                    res.json({
-                        userId: user.id,
-                        accessToken: accessToken,
-                        refreshToken: refreshToken,
-                        expiresIn: expirationDate
-                    });
-
-                    // удаляем для этого клиента старые токены
-                    process.nextTick(function () {
-                        db.accessTokens.deleteByClientIdExceptNewToken(req.user.clientId, accessToken);
-                        db.refreshTokens.deleteByClientIdExceptNewToken(req.user.clientId, refreshToken);
-                    });
-                });
-            });
+            generateAuthTokens(res, user.userId, req.user.clientId);
         }
     });
 });
@@ -216,41 +221,17 @@ router.post('/refresh', passport.authenticate('basic', {session: false}), functi
             return;
         }
 
-        var accessToken = utils.token();
-        var expirationDate = utils.calculateExpirationDate();
-        db.accessTokens.save(accessToken, expirationDate, oldRefreshTokenRecord.userId, req.user.clientId, function (err) {
-            if (err) {
-                res.status(500).end();
-                return;
-            }
 
-            var refreshToken = utils.token();
-            db.refreshTokens.save(refreshToken, oldRefreshTokenRecord.userId, req.user.clientId, function (err) {
-                if (err) {
-                    res.status(500).end();
-                    return;
-                }
-
-                res.json({
-                    userId: oldRefreshTokenRecord.userId,
-                    accessToken: accessToken,
-                    refreshToken: refreshToken,
-                    expiresIn: expirationDate
-                });
-
-                // удаляем для этого клиента старые токены
-                process.nextTick(function () {
-                    db.accessTokens.deleteByClientIdExceptNewToken(req.user.clientId, accessToken);
-                    db.refreshTokens.deleteByClientIdExceptNewToken(req.user.clientId, refreshToken);
-                });
-            });
-        });
+        generateAuthTokens(res, oldRefreshTokenRecord.userId, oldRefreshTokenRecord.clientId);
     });
 });
 
 
 router.get('/me', passport.authenticate('bearer', {session: false}), function (req, res) {
-    res.json(req.user);
+    res.json({
+        clientId: req.user.clientId,
+        userId: req.user.userId
+    });
 });
 
 
@@ -281,26 +262,36 @@ router.get('/setup-two-factor', passport.authenticate('bearer', {session: false}
         otpUrl = 'otpauth://totp/' + req.user.email + '?secret=' + encodedKey + '&period=' + req.user.twoFactor.period;
         qrImage = 'https://chart.googleapis.com/chart?chs=166x166&chld=L|0&cht=qr&chl=' + encodeURIComponent(otpUrl);
 
-        res.json({user: req.user.id, key: encodedKey.toString(), qrImage: qrImage});
+        res.json({user: req.user.userId, key: encodedKey.toString(), qrImage: qrImage});
     } else {
         // new two-factor setup.  generate and save a secret key
         var key = utils.token(10);
         encodedKey = base32.encode(key);
 
+
+        /**
+         * RFC 6238
+         * We RECOMMEND a default time-step size of 30 seconds.  This default
+         * value of 30 seconds is selected as a balance between security and
+         * usability.
+         *
+         * Google Authenticator: support for 30-second TOTP codes
+         */
         var period = config.twoFactorPeriod;
 
         // generate QR code for scanning into Google Authenticator
         // reference: https://code.google.com/p/google-authenticator/wiki/KeyUriFormat
         otpUrl = 'otpauth://totp/' + req.user.email + '?secret=' + encodedKey + '&period=' + period;
         qrImage = 'https://chart.googleapis.com/chart?chs=166x166&chld=L|0&cht=qr&chl=' + encodeURIComponent(otpUrl);
+        // TODO свой генератор qr кодов нужен
 
-        db.users.setTwoFactor(req.user.id, {key: key, period: period}, function (err) {
+        db.users.setTwoFactor(req.user.userId, {key: key, period: period}, function (err) {
             if (err) {
                 res.status(500).end();
                 return;
             }
 
-            res.json({user: req.user.id, key: encodedKey.toString(), qrImage: qrImage});
+            res.json({user: req.user.userId, key: encodedKey.toString(), qrImage: qrImage});
         });
     }
 });
@@ -310,9 +301,9 @@ router.post('/login-otp',
     passport.authenticate('temporary-bearer', {session: false}), // получает юзера и пробрасывает в totp стратегию
     passport.authenticate('totp', {session: false}),
     function (req, res) {
-        res.send('auth');
-        // TODO выдача токенов
+        generateAuthTokens(res, req.user.userId, req.user.clientId);
     });
+
 
 /**
  * TODO 1) social   2) 2fa   3) БД   4) шифрование/логирование/рефакторинг  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

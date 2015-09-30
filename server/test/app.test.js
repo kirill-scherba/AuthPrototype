@@ -245,46 +245,46 @@ describe('integration testing signup', function () {
 
     describe("websocket", function () {
         it("should authorize", function (done) {
-            streamAuth.check(clientId, clientSecret, userAuthDataRefresh.accessToken, function (err, client) {
+            streamAuth.check(clientId, clientSecret, userAuthDataRefresh.accessToken, function (err, userData) {
                 if (err) {
                     return done(err);
                 }
 
-                client.should.be.ok;
-                client.should.be.json;
+                userData.should.be.ok;
+                userData.should.be.json;
                 done();
             });
         });
 
         it("should not authorize with wrong clientId", function (done) {
-            streamAuth.check("111", clientSecret, userAuthDataRefresh.accessToken, function (err, client) {
+            streamAuth.check("111", clientSecret, userAuthDataRefresh.accessToken, function (err, userData) {
                 if (err) {
                     return done(err);
                 }
 
-                client.should.not.be.ok;
+                userData.should.not.be.ok;
                 done();
             });
         });
 
         it("should not authorize with wrong clientSecret", function (done) {
-            streamAuth.check(clientId, "111", userAuthDataRefresh.accessToken, function (err, client) {
+            streamAuth.check(clientId, "111", userAuthDataRefresh.accessToken, function (err, userData) {
                 if (err) {
                     return done(err);
                 }
 
-                client.should.not.be.ok;
+                userData.should.not.be.ok;
                 done();
             });
         });
 
         it("should not authorize with wrong accessToken", function (done) {
-            streamAuth.check(clientId, clientSecret, "111", function (err, client) {
+            streamAuth.check(clientId, clientSecret, "111", function (err, userData) {
                 if (err) {
                     return done(err);
                 }
 
-                client.should.not.be.ok;
+                userData.should.not.be.ok;
                 done();
             });
         });
@@ -306,7 +306,6 @@ describe('integration testing signup', function () {
                     }
 
                     twoFactorData = res.body;
-                    console.log(twoFactorData);
 
                     done();
                 });

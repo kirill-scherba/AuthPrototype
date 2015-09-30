@@ -27,7 +27,7 @@ module.exports.check = function (clientId, clientSecret, accessToken, done) {
                 return done(err);
             }
 
-            if (!token || token.clientId) {
+            if (!token || !token.clientId) {
                 return done(null, false);
             }
 
@@ -47,10 +47,8 @@ module.exports.check = function (clientId, clientSecret, accessToken, done) {
                     if (!user) {
                         return done(null, false);
                     }
-                    // to keep this example simple, restricted scopes are not implemented,
-                    // and this is just for illustrative purposes
-                    var info = {scope: '*'};
-                    return done(null, user);
+
+                    return done(null, {userId: user.userId});
                 });
             }
         });
