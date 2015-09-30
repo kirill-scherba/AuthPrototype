@@ -10,6 +10,7 @@ function getHash(password) {
     return crypto.createHash('sha512').update(password).digest('hex');
 }
 
+
 describe('integration testing signup', function () {
     var clientId;
     var clientSecret;
@@ -24,6 +25,45 @@ describe('integration testing signup', function () {
     var userAuthDataLogin;
     var userAuthDataRefresh;
     var userAuthDataTwoFactor;
+
+
+    function callMe(accessToken, done) {
+        request(app)
+            .get('/api/auth/me')
+            .set('Authorization', 'Bearer ' + accessToken)
+            .expect(200)
+            .end(function (err, res) {
+                if (err) {
+                    return done(err);
+                }
+
+                res.body.should.be.json;
+                res.body.clientId.should.not.be.empty;
+                res.body.userId.should.not.be.empty;
+
+                done();
+            });
+    }
+
+
+    function callMeAndFail(token, done) {
+        request(app)
+            .get('/api/auth/me')
+            .set('Authorization', 'Bearer ' + token)
+            .expect(401, done);
+    }
+
+
+    function callRefreshAndFail(refreshToken, done) {
+        request(app)
+            .post('/api/auth/refresh')
+            .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
+            .send({
+                refreshToken: refreshToken
+            })
+            .expect(401, done);
+    }
+
 
     describe("register_client", function () {
         it('should return json body on register_client', function (done) {
@@ -61,6 +101,7 @@ describe('integration testing signup', function () {
             });
         });
     });
+
 
     describe("register", function () {
         it("should register and return {user{}; accessToken; refreshToken; expiresIn}", function (done) {
@@ -116,6 +157,7 @@ describe('integration testing signup', function () {
                 .expect(400, "INVALID_EMAIL", done);
         });
     });
+
 
     describe("login", function () {
         it("should login", function (done) {
@@ -177,6 +219,7 @@ describe('integration testing signup', function () {
         });
     });
 
+
     describe("refresh", function () {
         it("should refresh tokens", function (done) {
             request(app)
@@ -204,44 +247,29 @@ describe('integration testing signup', function () {
 
         // повторно нельзя получить auth_data по refreshToken
         it("should return 401 when you try get new auth_data(tokens) by used once refreshToken", function (done) {
-            request(app)
-                .post('/api/auth/refresh')
-                .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
-                .send({
-                    refreshToken: userAuthDataLogin.refreshToken
-                })
-                .expect(401, done);
+            callRefreshAndFail(userAuthDataLogin.refreshToken, done);
         });
     });
+
 
     describe("check resource protection", function () {
         it("should return 200 and user data", function (done) {
-            request(app)
-                .get('/api/auth/me')
-                .set('Authorization', 'Bearer ' + userAuthDataRefresh.accessToken)
-                .expect(200, done);
+            callMe(userAuthDataRefresh.accessToken, done);
         });
 
         it("should return 401 on request by secure path (/api/oauth/me) with wrong token", function (done) {
-            request(app)
-                .get('/api/auth/me')
-                .set('Authorization', 'Bearer ' + 'ewfdsgfgdfghfdgsdgdfsgdfsfg')
-                .expect(401, done);
+            callMeAndFail('ewfdsgfgdfghfdgsdgdfsgdfsfg', done);
         });
 
         it("should return 401 on request by secure path with old(already deleted) token", function (done) {
-            request(app)
-                .get('/api/auth/me')
-                .set('Authorization', 'Bearer ' + userAuthDataLogin.accessToken)
-                .expect(401, done);
+            callMeAndFail(userAuthDataLogin.accessToken, done);
         });
 
         it("should return 401 on request by secure path without token", function (done) {
-            request(app)
-                .get('/api/auth/me')
-                .expect(401, done);
+            callMeAndFail(undefined, done);
         });
     });
+
 
     describe("websocket", function () {
         it("should authorize", function (done) {
@@ -344,10 +372,26 @@ describe('integration testing signup', function () {
                 .send({
                     code: otp.generate(twoFactorData.key)
                 })
-                .expect(200, done);
+                .expect(200)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+                    res.body.should.be.json;
+                    res.body.accessToken.should.not.be.empty;
+                    res.body.refreshToken.should.not.be.empty;
+                    res.body.expiresIn.should.not.be.empty;
+                    res.body.userId.should.not.be.empty;
+
+                    userAuthDataTwoFactor = res.body;
+
+                    done();
+                });
         });
 
-        it("should return 200 and user data");
+        it("should return 200 and user data", function (done) {
+            callMe(userAuthDataTwoFactor.accessToken, done);
+        });
     });
 
 
@@ -355,27 +399,19 @@ describe('integration testing signup', function () {
         it("should logout", function (done) {
             request(app)
                 .get('/api/auth/logout')
-                .set('Authorization', 'Bearer ' + userAuthDataRefresh.accessToken)
+                .set('Authorization', 'Bearer ' + userAuthDataTwoFactor.accessToken)
                 .expect(200, done);
         });
 
         it("should return 401 on request by secure path after logout", function (done) {
-            request(app)
-                .get('/api/auth/me')
-                .set('Authorization', 'Bearer ' + userAuthDataRefresh.accessToken)
-                .expect(401, done);
+            callMeAndFail(userAuthDataTwoFactor.accessToken, done);
         });
 
         it("should return 401 when you try get new auth_data(tokens) after logout", function (done) {
-            request(app)
-                .post('/api/auth/refresh')
-                .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
-                .send({
-                    refreshToken: userAuthDataRefresh.refreshToken
-                })
-                .expect(401, done);
+            callRefreshAndFail(userAuthDataRefresh.refreshToken, done);
         });
     });
+
 
     describe("facebook", function () {
         it("facebook auth request"/*, function (done) {
