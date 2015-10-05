@@ -1,4 +1,4 @@
-auth_data = user_id; access_token; refresh_token; expires_in
+authData = userId; accessToken; refreshToken; expiresIn
 
 ===============================================
 == РЕГИСТРАЦИЯ
@@ -10,8 +10,8 @@ auth_data = user_id; access_token; refresh_token; expires_in
 
 [BasicStrategy]
 /register
-	-> hash(пароль)/логин + user_data (language и что угодно еще)
-	<- auth_data + user_id
+	-> hash(пароль)/логин + userData (language и что угодно еще)
+	<- authData
 
 
 взять из фаркла:
@@ -26,13 +26,13 @@ auth_data = user_id; access_token; refresh_token; expires_in
 /login
 	-> hash(пароль)/логин
 		// удаляем для этого клиента старые токены
-	<- auth_data
+	<- authData
 
 [BasicStrategy]
 /refresh
-	-> refresh_token
+	-> refreshToken
 		// удаляем старые токены
-	<- auth_data
+	<- authData
 
 
 
@@ -51,15 +51,15 @@ auth_data = user_id; access_token; refresh_token; expires_in
 /login
 	-> hash(пароль)/логин
 		// удаляем для этого клиента старые временные токены
-	<- temporary_token (10 мин)
+	<- temporaryToken (10 мин)
 
 
 [TemporaryBearerStrategy] - проверяем временный токен и вбрасываем юзера в TotpStrategy
 [TotpStrategy]
 /login-otp
 	-> 
-		// удаляем temporary_token
-	<- auth_data
+		// удаляем temporaryToken
+	<- authData
 
 /refresh
 
@@ -76,8 +76,8 @@ auth_data = user_id; access_token; refresh_token; expires_in
 
 ===============================================
 схемы валидации
-	BearerStrategy - http headers Authorization = 'Bearer ' + access_token
-	TemporaryBearerStrategy - http headers Authorization = 'Bearer ' + temporary_token
+	BearerStrategy - http headers Authorization = 'Bearer ' + accessToken
+	TemporaryBearerStrategy - http headers Authorization = 'Bearer ' + temporaryToken
 	BasicStrategy - http headers Authorization = 'Basic ' +  Base64(clientId:secret)
 
 	TotpStrategy - two-factor authentication; post({code: "111111"})
@@ -87,7 +87,7 @@ auth_data = user_id; access_token; refresh_token; expires_in
 !!!
 	scope/rules - http://stackoverflow.com/questions/15719116/verify-access-group-in-passport-js дополнительный middleware
 	баны/блокирование -
-		1) access_token + refresh_token по девайсу
-		2) access_token + refresh_token + device, проверяется при register_client
+		1) accessToken + refreshToken по девайсу
+		2) accessToken + refreshToken + device, проверяется при register_client
 		3) полностью
-	стримы/websockets - проверка на access_token + clientId/secret
+	стримы/websockets - проверка на accessToken + clientId/secret
