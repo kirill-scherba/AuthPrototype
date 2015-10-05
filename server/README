@@ -1,4 +1,7 @@
 authData = userId; accessToken; refreshToken; expiresIn
+hash() - sha512
+encrypt() - шифрование 'aes-256-ctr' по client secret
+
 
 ===============================================
 == РЕГИСТРАЦИЯ
@@ -9,8 +12,9 @@ authData = userId; accessToken; refreshToken; expiresIn
 
 
 [BasicStrategy]
+[decryptBody]
 /register
-	-> hash(пароль)/логин + userData (language и что угодно еще)
+	-> {data: encrypt(hash(пароль)/логин + userData (language и что угодно еще))}
 	<- authData
 
 
@@ -23,8 +27,9 @@ authData = userId; accessToken; refreshToken; expiresIn
 /register-client
 
 [BasicStrategy]
+[decryptBody]
 /login
-	-> hash(пароль)/логин
+	-> {data: encrypt(hash(пароль)/логин)}
 		// удаляем для этого клиента старые токены
 	<- authData
 
@@ -48,8 +53,9 @@ authData = userId; accessToken; refreshToken; expiresIn
 // подразумевается /logout
 
 [BasicStrategy]
+[decryptBody]
 /login
-	-> hash(пароль)/логин
+	-> {data: encrypt(hash(пароль)/логин)}
 		// удаляем для этого клиента старые временные токены
 	<- temporaryToken (10 мин)
 

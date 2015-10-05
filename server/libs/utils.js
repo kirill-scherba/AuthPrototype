@@ -1,6 +1,6 @@
 var crypto = require('crypto');
 var uuid = require('node-uuid');
-var config = require('./config');
+var config = require('./../config');
 
 // регулярка для валидации email
 var re = /^([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22))*\x40([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d))*$/;
@@ -63,4 +63,31 @@ module.exports.calculateExpirationDate = function (expiresIn) {
     }
 
     return new Date(new Date().getTime() + (expiresIn * 1000));
+};
+
+
+/**
+ * Объект для шифрования и дешифрования
+ * @param {String} [algorithm=aes-256-ctr]
+ * @return {{encrypt: Function, decrypt: Function}}
+ * @constructor
+ */
+module.exports.Cipher = function (algorithm) {
+    algorithm = algorithm || 'aes-256-ctr';
+
+    return {
+        encrypt: function (text, secret) {
+            var cipher = crypto.createCipher(algorithm, secret);
+            var crypted = cipher.update(text, 'utf8', 'hex');
+            crypted += cipher.final('hex');
+            return crypted;
+        },
+
+        decrypt: function (text, secret) {
+            var decipher = crypto.createDecipher(algorithm, secret);
+            var dec = decipher.update(text, 'hex', 'utf8');
+            dec += decipher.final('utf8');
+            return dec;
+        }
+    };
 };

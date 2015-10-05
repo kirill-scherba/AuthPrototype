@@ -5,6 +5,7 @@ var otp = require('otplib/lib/authenticator');
 var app = require('../app');
 var db = require('../db');
 var streamAuth = require('./../auth/stream');
+var cipher = require('../libs/utils').Cipher();
 
 function getHash(password) {
     return crypto.createHash('sha512').update(password).digest('hex');
@@ -65,6 +66,13 @@ describe('integration testing signup', function () {
     }
 
 
+    function encrypt(data) {
+        return {
+            data: cipher.encrypt(JSON.stringify(data), clientSecret)
+        };
+    }
+
+
     describe("register-client", function () {
         it('should return json body on register-client', function (done) {
             request(app)
@@ -108,12 +116,12 @@ describe('integration testing signup', function () {
             request(app)
                 .post('/api/auth/register')
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
-                .send({
+                .send(encrypt({
                     email: email,
                     hashPassword: getHash(password),
                     username: username,
                     userData: {language: language}
-                })
+                }))
                 .expect(200)
                 .end(function (err, res) {
                     if (err) {
@@ -135,12 +143,12 @@ describe('integration testing signup', function () {
             request(app)
                 .post('/api/auth/register')
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
-                .send({
+                .send(encrypt({
                     email: email,
                     hashPassword: getHash(password),
                     username: username,
                     userData: {language: language}
-                })
+                }))
                 .expect(400, "EMAIL_EXISTS", done);
         });
 
@@ -148,12 +156,12 @@ describe('integration testing signup', function () {
             request(app)
                 .post('/api/auth/register')
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
-                .send({
+                .send(encrypt({
                     email: "foo",
                     hashPassword: getHash(password),
                     username: username,
                     userData: {language: language}
-                })
+                }))
                 .expect(400, "INVALID_EMAIL", done);
         });
     });
@@ -164,10 +172,10 @@ describe('integration testing signup', function () {
             request(app)
                 .post('/api/auth/login')
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
-                .send({
+                .send(encrypt({
                     email: email,
                     hashPassword: getHash(password)
-                })
+                }))
                 .expect(200)
                 .end(function (err, res) {
                     if (err) {
@@ -189,10 +197,10 @@ describe('integration testing signup', function () {
             request(app)
                 .post('/api/auth/login')
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
-                .send({
+                .send(encrypt({
                     email: "aa@aa.aa",
                     hashPassword: getHash(password)
-                })
+                }))
                 .expect(400, "WRONG_EMAIL_OR_PASSWORD", done);
 
         });
@@ -201,10 +209,10 @@ describe('integration testing signup', function () {
             request(app)
                 .post('/api/auth/login')
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
-                .send({
+                .send(encrypt({
                     email: email,
                     hashPassword: getHash("dasddsfdsfsdf")
-                })
+                }))
                 .expect(400, "WRONG_EMAIL_OR_PASSWORD", done);
         });
 
@@ -212,9 +220,9 @@ describe('integration testing signup', function () {
             request(app)
                 .post('/api/auth/login')
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
-                .send({
+                .send(encrypt({
                     email: email
-                })
+                }))
                 .expect(400, "HASHPASSWORD_IS_EMPTY", done);
         });
     });
@@ -343,10 +351,10 @@ describe('integration testing signup', function () {
             request(app)
                 .post('/api/auth/login')
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
-                .send({
+                .send(encrypt({
                     email: email,
                     hashPassword: getHash(password)
-                })
+                }))
                 .expect(200)
                 .end(function (err, res) {
                     if (err) {

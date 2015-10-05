@@ -1,9 +1,10 @@
 var express = require('express');
 var passport = require('passport');
 var base32 = require('thirty-two');
-var utils = require('./../utils');
+var utils = require('./../libs/utils');
 var db = require('./../db/index');
 var config = require('./../config');
+var decryptBody = require('./../libs/decryptBody');
 
 var router = express.Router();
 router.use('/facebook', require('./facebook'));
@@ -44,60 +45,63 @@ router.post('/register-client', function (req, res) {
  * @return 400 + EMAIL_EXISTS
  * @return 500
  */
-router.post('/register', passport.authenticate('basic', {session: false}), function (req, res) {
-    if (!utils.validateEmail(req.body.email)) {
-        res.status(400).end("INVALID_EMAIL");
-        return;
-    }
-
-    if (!req.body.username || !req.body.hashPassword) {
-        res.status(400).end();
-        return;
-    }
-
-    var userId = utils.uid();
-    db.users.save(userId, req.body.email, req.body.username, req.body.hashPassword, req.body.userData, function (err) {
-        if (err && err.message === "EMAIL_EXISTS") {
-            res.status(400).end("EMAIL_EXISTS");
+router.post('/register',
+    passport.authenticate('basic', {session: false}),
+    decryptBody,
+    function (req, res) {
+        if (!utils.validateEmail(req.body.email)) {
+            res.status(400).end("INVALID_EMAIL");
             return;
         }
 
-        if (err) {
-            res.status(500).end();
+        if (!req.body.username || !req.body.hashPassword) {
+            res.status(400).end();
             return;
         }
 
-        var accessToken = utils.token();
-        var expirationDate = utils.calculateExpirationDate();
-        db.accessTokens.save(accessToken, expirationDate, userId, req.user.clientId, function (err) {
-            if (err) {
-                res.status(500).end();
-                db.users.delete(userId);
+        var userId = utils.uid();
+        db.users.save(userId, req.body.email, req.body.username, req.body.hashPassword, req.body.userData, function (err) {
+            if (err && err.message === "EMAIL_EXISTS") {
+                res.status(400).end("EMAIL_EXISTS");
                 return;
             }
 
-            var refreshToken = utils.token();
-            db.refreshTokens.save(refreshToken, userId, req.user.clientId, function (err) {
+            if (err) {
+                res.status(500).end();
+                return;
+            }
+
+            var accessToken = utils.token();
+            var expirationDate = utils.calculateExpirationDate();
+            db.accessTokens.save(accessToken, expirationDate, userId, req.user.clientId, function (err) {
                 if (err) {
                     res.status(500).end();
                     db.users.delete(userId);
                     return;
                 }
 
-                res.json({
-                    userId: userId,
-                    accessToken: accessToken,
-                    refreshToken: refreshToken,
-                    expiresIn: expirationDate
-                });
+                var refreshToken = utils.token();
+                db.refreshTokens.save(refreshToken, userId, req.user.clientId, function (err) {
+                    if (err) {
+                        res.status(500).end();
+                        db.users.delete(userId);
+                        return;
+                    }
 
-                process.nextTick(function () {
-                    // TODO sendConfirmationEmail(req.body.email, req.body.language, req.protocol + '://' + req.get('host'));
+                    res.json({
+                        userId: userId,
+                        accessToken: accessToken,
+                        refreshToken: refreshToken,
+                        expiresIn: expirationDate
+                    });
+
+                    process.nextTick(function () {
+                        // TODO sendConfirmationEmail(req.body.email, req.body.language, req.protocol + '://' + req.get('host'));
+                    });
                 });
             });
         });
     });
-});
 
 
 function generateAuthTokens(res, userId, clientId) {
@@ -146,54 +150,57 @@ function generateAuthTokens(res, userId, clientId) {
  * @return 500
  *
  */
-router.post('/login', passport.authenticate('basic', {session: false}), function (req, res) {
-    if (!utils.validateEmail(req.body.email)) {
-        res.status(400).end("INVALID_EMAIL");
-        return;
-    }
-
-    if (!req.body.hashPassword) {
-        res.status(400).end("HASHPASSWORD_IS_EMPTY");
-        return;
-    }
-
-    db.users.findByEmail(req.body.email, function (err, user) {
-        if (err && err.message === "EMAIL_NOT_FOUND" || !user || user.hashPassword !== req.body.hashPassword) {
-            res.status(400).end("WRONG_EMAIL_OR_PASSWORD");
+router.post('/login',
+    passport.authenticate('basic', {session: false}),
+    decryptBody,
+    function (req, res) {
+        if (!utils.validateEmail(req.body.email)) {
+            res.status(400).end("INVALID_EMAIL");
             return;
         }
 
-        if (err) {
-            res.status(500).end();
+        if (!req.body.hashPassword) {
+            res.status(400).end("HASHPASSWORD_IS_EMPTY");
             return;
         }
 
+        db.users.findByEmail(req.body.email, function (err, user) {
+            if (err && err.message === "EMAIL_NOT_FOUND" || !user || user.hashPassword !== req.body.hashPassword) {
+                res.status(400).end("WRONG_EMAIL_OR_PASSWORD");
+                return;
+            }
 
-        if (user.twoFactor) {
-            var temporaryToken = utils.token();
-            var temporaryExpirationDate = utils.calculateExpirationDate(config.temporaryTokenExpiresIn);
-            db.temporaryTokens.save(temporaryToken, temporaryExpirationDate, user.userId, req.user.clientId, function (err) {
-                if (err) {
-                    res.status(500).end();
-                    return;
-                }
+            if (err) {
+                res.status(500).end();
+                return;
+            }
 
-                res.json({
-                    userId: user.userId,
-                    temporaryToken: temporaryToken,
-                    expiresIn: temporaryExpirationDate
+
+            if (user.twoFactor) {
+                var temporaryToken = utils.token();
+                var temporaryExpirationDate = utils.calculateExpirationDate(config.temporaryTokenExpiresIn);
+                db.temporaryTokens.save(temporaryToken, temporaryExpirationDate, user.userId, req.user.clientId, function (err) {
+                    if (err) {
+                        res.status(500).end();
+                        return;
+                    }
+
+                    res.json({
+                        userId: user.userId,
+                        temporaryToken: temporaryToken,
+                        expiresIn: temporaryExpirationDate
+                    });
+
+                    // удаляем для этого клиента старые токены
+                    process.nextTick(function () {
+                        db.temporaryTokens.deleteByClientIdExceptNewToken(req.user.clientId, temporaryToken);
+                    });
                 });
-
-                // удаляем для этого клиента старые токены
-                process.nextTick(function () {
-                    db.temporaryTokens.deleteByClientIdExceptNewToken(req.user.clientId, temporaryToken);
-                });
-            });
-        } else {
-            generateAuthTokens(res, user.userId, req.user.clientId);
-        }
+            } else {
+                generateAuthTokens(res, user.userId, req.user.clientId);
+            }
+        });
     });
-});
 
 
 /**
