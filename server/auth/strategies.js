@@ -7,15 +7,15 @@ var db = require('./../db/index');
 
 
 passport.use(new BasicStrategy(
-    function (username, password, done) {
-        db.clients.find(username, function (err, client) {
+    function (clientId, clientSecret, done) {
+        db.clients.find(clientId, function (err, client) {
             if (err) {
                 return done(err);
             }
             if (!client) {
                 return done(null, false);
             }
-            if (client.secret !== password) {
+            if (client.secret !== clientSecret) {
                 return done(null, false);
             }
             return done(null, client);
