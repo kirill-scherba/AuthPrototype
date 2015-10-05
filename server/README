@@ -3,7 +3,7 @@ authData = userId; accessToken; refreshToken; expiresIn
 ===============================================
 == РЕГИСТРАЦИЯ
 
-/register_client - регистрировать
+/register-client - регистрировать
 	-> инфа по девайсу
 	<-clientId/secret
 
@@ -20,7 +20,7 @@ authData = userId; accessToken; refreshToken; expiresIn
 
 ===============================================
 == ВХОД
-/register_client
+/register-client
 
 [BasicStrategy]
 /login
@@ -38,7 +38,7 @@ authData = userId; accessToken; refreshToken; expiresIn
 
 ===============================================
 == ВХОД 2FA
-/register_client
+/register-client
 
 // подразумевается /login или /register
 
@@ -88,6 +88,6 @@ authData = userId; accessToken; refreshToken; expiresIn
 	scope/rules - http://stackoverflow.com/questions/15719116/verify-access-group-in-passport-js дополнительный middleware
 	баны/блокирование -
 		1) accessToken + refreshToken по девайсу
-		2) accessToken + refreshToken + device, проверяется при register_client
+		2) accessToken + refreshToken + device, проверяется при register-client
 		3) полностью
 	стримы/websockets - проверка на accessToken + clientId/secret

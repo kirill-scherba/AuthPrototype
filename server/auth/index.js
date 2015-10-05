@@ -19,7 +19,7 @@ router.get('/', function (req, res) {
  * @return 400 + USER_DATA_IS_EMPTY
  * @return 200 + {clientId, clientSecret}
  */
-router.post('/register_client', function (req, res) {
+router.post('/register-client', function (req, res) {
     if (!req.body.clientData) {
         res.status(400).end("USER_DATA_IS_EMPTY");
         return;

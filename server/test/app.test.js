@@ -65,10 +65,10 @@ describe('integration testing signup', function () {
     }
 
 
-    describe("register_client", function () {
-        it('should return json body on register_client', function (done) {
+    describe("register-client", function () {
+        it('should return json body on register-client', function (done) {
             request(app)
-                .post('/api/auth/register_client')
+                .post('/api/auth/register-client')
                 .send({clientData: clientData})
                 .expect('Content-Type', /application\/json/)
                 .expect(200)
@@ -245,8 +245,8 @@ describe('integration testing signup', function () {
                 });
         });
 
-        // повторно нельзя получить auth_data по refreshToken
-        it("should return 401 when you try get new auth_data(tokens) by used once refreshToken", function (done) {
+        // повторно нельзя получить authData по refreshToken
+        it("should return 401 when you try get new authData(tokens) by used once refreshToken", function (done) {
             callRefreshAndFail(userAuthDataLogin.refreshToken, done);
         });
     });
@@ -407,7 +407,7 @@ describe('integration testing signup', function () {
             callMeAndFail(userAuthDataTwoFactor.accessToken, done);
         });
 
-        it("should return 401 when you try get new auth_data(tokens) after logout", function (done) {
+        it("should return 401 when you try get new authData(tokens) after logout", function (done) {
             callRefreshAndFail(userAuthDataRefresh.refreshToken, done);
         });
     });
