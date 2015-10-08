@@ -406,7 +406,7 @@ describe('integration testing signup', function () {
     describe("logout", function () {
         it("should logout", function (done) {
             request(app)
-                .get('/api/auth/logout')
+                .post('/api/auth/logout')
                 .set('Authorization', 'Bearer ' + userAuthDataTwoFactor.accessToken)
                 .expect(200, done);
         });

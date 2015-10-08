@@ -242,7 +242,7 @@ router.get('/me', passport.authenticate('bearer', {session: false}), function (r
 });
 
 
-router.get('/logout', passport.authenticate('bearer', {session: false}), function (req, res) {
+router.post('/logout', passport.authenticate('bearer', {session: false}), function (req, res) {
     db.accessTokens.deleteByClientId(req.user.clientId);
     db.refreshTokens.deleteByClientId(req.user.clientId);
 
