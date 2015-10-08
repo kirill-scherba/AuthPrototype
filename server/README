@@ -1,6 +1,6 @@
 authData = userId; accessToken; refreshToken; expiresIn
 hash() - sha512
-encrypt() - шифрование 'aes-256-ctr' по client secret
+encrypt() - шифрование 'aes-256-ctr' по clientSecret
 
 
 ===============================================
@@ -8,7 +8,7 @@ encrypt() - шифрование 'aes-256-ctr' по client secret
 
 /register-client - регистрировать
 	-> инфа по девайсу
-	<-clientId/secret
+	<-clientId, clientSecret
 
 
 [BasicStrategy]
@@ -84,7 +84,7 @@ encrypt() - шифрование 'aes-256-ctr' по client secret
 схемы валидации
 	BearerStrategy - http headers Authorization = 'Bearer ' + accessToken
 	TemporaryBearerStrategy - http headers Authorization = 'Bearer ' + temporaryToken
-	BasicStrategy - http headers Authorization = 'Basic ' +  Base64(clientId:secret)
+	BasicStrategy - http headers Authorization = 'Basic ' +  Base64(clientId:clientSecret)
 
 	TotpStrategy - two-factor authentication; post({code: "111111"})
 	Social strategies - FB VK Twitter
@@ -96,4 +96,4 @@ encrypt() - шифрование 'aes-256-ctr' по client secret
 		1) accessToken + refreshToken по девайсу
 		2) accessToken + refreshToken + device, проверяется при register-client
 		3) полностью
-	стримы/websockets - проверка на accessToken + clientId/secret
+	стримы/websockets - проверка на accessToken + clientId/clientSecret
