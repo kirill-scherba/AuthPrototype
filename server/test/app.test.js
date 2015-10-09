@@ -5,11 +5,8 @@ var otp = require('otplib/lib/authenticator');
 var app = require('../app');
 var db = require('../db');
 var streamAuth = require('./../auth/stream');
-var cipher = require('../libs/utils').Cipher();
-
-function getHash(password) {
-    return crypto.createHash('sha512').update(password).digest('hex');
-}
+var utils = require('../libs/utils');
+var cipher = utils.Cipher();
 
 
 describe('integration testing signup', function () {
@@ -124,7 +121,7 @@ describe('integration testing signup', function () {
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
                 .send(encrypt({
                     email: email,
-                    hashPassword: getHash(password),
+                    hashPassword: utils.getHash(password),
                     username: username,
                     userData: {language: language}
                 }))
@@ -151,7 +148,7 @@ describe('integration testing signup', function () {
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
                 .send(encrypt({
                     email: email,
-                    hashPassword: getHash(password),
+                    hashPassword: utils.getHash(password),
                     username: username,
                     userData: {language: language}
                 }))
@@ -164,7 +161,7 @@ describe('integration testing signup', function () {
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
                 .send(encrypt({
                     email: "foo",
-                    hashPassword: getHash(password),
+                    hashPassword: utils.getHash(password),
                     username: username,
                     userData: {language: language}
                 }))
@@ -180,7 +177,7 @@ describe('integration testing signup', function () {
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
                 .send(encrypt({
                     email: email,
-                    hashPassword: getHash(password)
+                    hashPassword: utils.getHash(password)
                 }))
                 .expect(200)
                 .end(function (err, res) {
@@ -205,7 +202,7 @@ describe('integration testing signup', function () {
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
                 .send(encrypt({
                     email: "aa@aa.aa",
-                    hashPassword: getHash(password)
+                    hashPassword: utils.getHash(password)
                 }))
                 .expect(400, "WRONG_EMAIL_OR_PASSWORD", done);
 
@@ -217,7 +214,7 @@ describe('integration testing signup', function () {
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
                 .send(encrypt({
                     email: email,
-                    hashPassword: getHash("dasddsfdsfsdf")
+                    hashPassword: utils.getHash("dasddsfdsfsdf")
                 }))
                 .expect(400, "WRONG_EMAIL_OR_PASSWORD", done);
         });
@@ -359,7 +356,7 @@ describe('integration testing signup', function () {
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
                 .send(encrypt({
                     email: email,
-                    hashPassword: getHash(password)
+                    hashPassword: utils.getHash(password)
                 }))
                 .expect(200)
                 .end(function (err, res) {
