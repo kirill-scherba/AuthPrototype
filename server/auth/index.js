@@ -21,14 +21,14 @@ router.get('/', function (req, res) {
  * @return 200 + {clientId, clientSecret}
  */
 router.post('/register-client', function (req, res) {
-    if (!req.body.clientData) {
+    if (Object.keys(req.body).length === 0) { // проверяем, что тело не пустое
         res.status(400).end("USER_DATA_IS_EMPTY");
         return;
     }
 
     var clientId = utils.uid();
     var clientSecret = utils.token(16);
-    db.clients.save(clientId, clientSecret, req.body.clientData);
+    db.clients.save(clientId, clientSecret, req.body);
 
     res.json({clientId: clientId, clientSecret: clientSecret});
 });

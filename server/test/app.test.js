@@ -77,7 +77,7 @@ describe('integration testing signup', function () {
         it('should return json body on register-client', function (done) {
             request(app)
                 .post('/api/auth/register-client')
-                .send({clientData: clientData})
+                .send(clientData)
                 .expect('Content-Type', /application\/json/)
                 .expect(200)
                 .end(function (err, res) {
@@ -95,12 +95,18 @@ describe('integration testing signup', function () {
                 });
         });
 
+        it("should return 400 + USER_DATA_IS_EMPTY", function (done) {
+            request(app)
+                .post('/api/auth/register-client')
+                .expect(400, "USER_DATA_IS_EMPTY", done);
+        });
+
         it("database should contains clientId and clientSecret", function (done) {
             db.clients.find(clientId, function (err, client) {
                 if (err) {
                     return done(err);
                 }
-
+                console.log(client);
                 client.should.not.be.undefined;
                 client.secret.should.be.equal(clientSecret);
                 client.data.should.be.eql(clientData);
