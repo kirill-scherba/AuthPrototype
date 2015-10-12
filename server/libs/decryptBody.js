@@ -4,8 +4,8 @@ var cipher = require('./utils').Cipher();
  * Middleware расшифровывает тело запроса и ставит расшифрованный вариант в body
  */
 module.exports = function (req, res, next) {
-    if (req.body.data && req.user && req.user.secret) {
-        var data = cipher.decrypt(req.body.data, req.user.secret);
+    if (req.body.data && req.user && req.user.clientSecret) {
+        var data = cipher.decrypt(req.body.data, req.user.clientSecret);
 
         try {
             req.body = JSON.parse(data);

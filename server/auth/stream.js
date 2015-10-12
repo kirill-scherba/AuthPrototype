@@ -17,7 +17,7 @@ module.exports.check = function (clientId, clientSecret, accessToken, done) {
         if (!client) {
             return done(null, false);
         }
-        if (client.secret !== clientSecret) {
+        if (client.clientSecret !== clientSecret) {
             return done(null, false);
         }
 

@@ -7,5 +7,5 @@ module.exports.find = function (key, done) {
 };
 
 module.exports.save = function (id, secret, clientData) {
-    clients[id] = {clientId: id, secret: secret, data: clientData};
+    clients[id] = {clientId: id, clientSecret: secret, data: clientData};
 };

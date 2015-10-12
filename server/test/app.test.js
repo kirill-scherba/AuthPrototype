@@ -104,7 +104,7 @@ describe('integration testing signup', function () {
                     return done(err);
                 }
                 client.should.not.be.undefined;
-                client.secret.should.be.equal(clientSecret);
+                client.clientSecret.should.be.equal(clientSecret);
                 client.data.should.be.eql(clientData);
 
                 done();
