@@ -104,29 +104,27 @@ router.post('/register',
     });
 
 
-function generateAuthTokens(res, userId, clientId) {
+function generateAuthTokens(userId, clientId, done) {
     var accessToken = utils.token();
     var expirationDate = utils.calculateExpirationDate();
     db.accessTokens.save(accessToken, expirationDate, userId, clientId, function (err) {
         if (err) {
-            res.status(500).end();
+            done(err);
             return;
         }
 
         var refreshToken = utils.token();
         db.refreshTokens.save(refreshToken, userId, clientId, function (err) {
             if (err) {
-                res.status(500).end();
+                done(err);
                 return;
             }
 
-            res.json({
-                userId: userId,
+            done(null, {
                 accessToken: accessToken,
                 refreshToken: refreshToken,
                 expiresIn: expirationDate
             });
-
 
             // удаляем для этого клиента старые токены
             process.nextTick(function () {
@@ -197,7 +195,19 @@ router.post('/login',
                     });
                 });
             } else {
-                generateAuthTokens(res, user.userId, req.user.clientId);
+                generateAuthTokens(user.userId, req.user.clientId, function (err, data) {
+                    if (err) {
+                        res.status(500).end();
+                        return;
+                    }
+
+                    res.json({
+                        userId: user.userId,
+                        accessToken: data.accessToken,
+                        refreshToken: data.refreshToken,
+                        expiresIn: data.expiresIn
+                    });
+                });
             }
         });
     });
@@ -229,7 +239,19 @@ router.post('/refresh', passport.authenticate('basic', {session: false}), functi
         }
 
 
-        generateAuthTokens(res, oldRefreshTokenRecord.userId, oldRefreshTokenRecord.clientId);
+        generateAuthTokens(oldRefreshTokenRecord.userId, oldRefreshTokenRecord.clientId, function (err, data) {
+            if (err) {
+                res.status(500).end();
+                return;
+            }
+
+            res.json({
+                userId: oldRefreshTokenRecord.userId,
+                accessToken: data.accessToken,
+                refreshToken: data.refreshToken,
+                expiresIn: data.expiresIn
+            });
+        });
     });
 });
 
@@ -308,7 +330,19 @@ router.post('/login-otp',
     passport.authenticate('temporary-bearer', {session: false}), // получает юзера и пробрасывает в totp стратегию
     passport.authenticate('totp', {session: false}),
     function (req, res) {
-        generateAuthTokens(res, req.user.userId, req.user.clientId);
+        generateAuthTokens(req.user.userId, req.user.clientId, function (err, data) {
+            if (err) {
+                res.status(500).end();
+                return;
+            }
+
+            res.json({
+                userId: req.user.userId,
+                accessToken: data.accessToken,
+                refreshToken: data.refreshToken,
+                expiresIn: data.expiresIn
+            });
+        });
     });
 
 
