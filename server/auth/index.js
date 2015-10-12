@@ -94,7 +94,11 @@ router.post('/register',
                         userId: userId,
                         accessToken: accessToken,
                         refreshToken: refreshToken,
-                        expiresIn: expirationDate
+                        expiresIn: expirationDate,
+
+                        email: req.body.email,
+                        username: req.body.username,
+                        userData: req.body.userData
                     }, req.user.clientSecret));
 
                     process.nextTick(function () {
@@ -186,7 +190,6 @@ router.post('/login',
                     }
 
                     res.json(cipher.encryptJSON({
-                        userId: user.userId,
                         temporaryToken: temporaryToken,
                         expiresIn: temporaryExpirationDate
                     }, req.user.clientSecret));
@@ -207,7 +210,11 @@ router.post('/login',
                         userId: user.userId,
                         accessToken: data.accessToken,
                         refreshToken: data.refreshToken,
-                        expiresIn: data.expiresIn
+                        expiresIn: data.expiresIn,
+
+                        email: user.email,
+                        username: user.username,
+                        userData: user.data
                     }, req.user.clientSecret));
                 });
             }
@@ -250,7 +257,6 @@ router.post('/refresh',
                 }
 
                 res.json(cipher.encryptJSON({
-                    userId: oldRefreshTokenRecord.userId,
                     accessToken: data.accessToken,
                     refreshToken: data.refreshToken,
                     expiresIn: data.expiresIn
@@ -344,7 +350,10 @@ router.post('/login-otp',
                 userId: req.user.userId,
                 accessToken: data.accessToken,
                 refreshToken: data.refreshToken,
-                expiresIn: data.expiresIn
+                expiresIn: data.expiresIn,
+                email: req.user.email,
+                username: req.user.username,
+                userData: req.user.data
             }, req.user.clientSecret));
         });
     });

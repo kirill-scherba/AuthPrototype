@@ -132,6 +132,9 @@ describe('integration testing signup', function () {
                     data.refreshToken.should.not.be.empty;
                     data.expiresIn.should.not.be.empty;
                     data.userId.should.not.be.empty;
+                    data.email.should.not.be.empty;
+                    data.username.should.not.be.empty;
+                    data.userData.should.not.be.empty;
 
                     userAuthDataRegister = data;
 
@@ -191,6 +194,9 @@ describe('integration testing signup', function () {
                     data.refreshToken.should.not.be.empty;
                     data.expiresIn.should.not.be.empty;
                     data.userId.should.not.be.empty;
+                    data.email.should.not.be.empty;
+                    data.username.should.not.be.empty;
+                    data.userData.should.not.be.empty;
 
                     userAuthDataLogin = data;
 
@@ -255,7 +261,6 @@ describe('integration testing signup', function () {
                     data.accessToken.should.not.be.empty;
                     data.refreshToken.should.not.be.empty;
                     data.expiresIn.should.not.be.empty;
-                    data.userId.should.not.be.empty;
 
                     userAuthDataRefresh = data;
 
@@ -378,7 +383,6 @@ describe('integration testing signup', function () {
                     data.should.be.json;
                     data.temporaryToken.should.not.be.empty;
                     data.expiresIn.should.not.be.empty;
-                    data.userId.should.not.be.empty;
 
                     userTemporaryToken = data;
 
@@ -409,6 +413,9 @@ describe('integration testing signup', function () {
                     data.refreshToken.should.not.be.empty;
                     data.expiresIn.should.not.be.empty;
                     data.userId.should.not.be.empty;
+                    data.email.should.not.be.empty;
+                    data.username.should.not.be.empty;
+                    data.userData.should.not.be.empty;
 
                     userAuthDataTwoFactor = data;
 
