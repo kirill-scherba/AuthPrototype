@@ -88,6 +88,23 @@ module.exports.Cipher = function (algorithm) {
             var dec = decipher.update(text, 'hex', 'utf8');
             dec += decipher.final('utf8');
             return dec;
+        },
+
+        encryptJSON: function (data, secret) {
+            return {
+                data: this.encrypt(JSON.stringify(data), secret)
+            };
+        },
+
+        decryptJSON: function (data, secret) {
+            var result;
+
+            try {
+                result = JSON.parse(this.decrypt(data, secret));
+            } catch (e) {
+            }
+
+            return result;
         }
     };
 };

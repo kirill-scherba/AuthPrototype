@@ -5,9 +5,11 @@ var utils = require('./../libs/utils');
 var db = require('./../db/index');
 var config = require('./../config');
 var decryptBody = require('./../libs/decryptBody');
+var cipher = require('./../libs/utils').Cipher();
 
 var router = express.Router();
 router.use('/facebook', require('./facebook'));
+
 
 router.get('/', function (req, res) {
     res.send('auth');
@@ -88,12 +90,12 @@ router.post('/register',
                         return;
                     }
 
-                    res.json({
+                    res.json(cipher.encryptJSON({
                         userId: userId,
                         accessToken: accessToken,
                         refreshToken: refreshToken,
                         expiresIn: expirationDate
-                    });
+                    }, req.user.clientSecret));
 
                     process.nextTick(function () {
                         // TODO sendConfirmationEmail(req.body.email, req.body.language, req.protocol + '://' + req.get('host'));
@@ -183,11 +185,11 @@ router.post('/login',
                         return;
                     }
 
-                    res.json({
+                    res.json(cipher.encryptJSON({
                         userId: user.userId,
                         temporaryToken: temporaryToken,
                         expiresIn: temporaryExpirationDate
-                    });
+                    }, req.user.clientSecret));
 
                     // удаляем для этого клиента старые токены
                     process.nextTick(function () {
@@ -201,12 +203,12 @@ router.post('/login',
                         return;
                     }
 
-                    res.json({
+                    res.json(cipher.encryptJSON({
                         userId: user.userId,
                         accessToken: data.accessToken,
                         refreshToken: data.refreshToken,
                         expiresIn: data.expiresIn
-                    });
+                    }, req.user.clientSecret));
                 });
             }
         });
@@ -221,39 +223,41 @@ router.post('/login',
  * @return 401
  * @return 500
  */
-router.post('/refresh', passport.authenticate('basic', {session: false}), function (req, res) {
-    if (!req.body.refreshToken) {
-        res.status(400).end();
-        return;
-    }
-
-    db.refreshTokens.find(req.body.refreshToken, function (err, oldRefreshTokenRecord) {
-        if (err) {
-            res.status(500).end();
+router.post('/refresh',
+    passport.authenticate('basic', {session: false}),
+    function (req, res) {
+        if (!req.body.refreshToken) {
+            res.status(400).end();
             return;
         }
 
-        if (!oldRefreshTokenRecord || oldRefreshTokenRecord.clientId !== req.user.clientId) {
-            res.status(401).end();
-            return;
-        }
-
-
-        generateAuthTokens(oldRefreshTokenRecord.userId, oldRefreshTokenRecord.clientId, function (err, data) {
+        db.refreshTokens.find(req.body.refreshToken, function (err, oldRefreshTokenRecord) {
             if (err) {
                 res.status(500).end();
                 return;
             }
 
-            res.json({
-                userId: oldRefreshTokenRecord.userId,
-                accessToken: data.accessToken,
-                refreshToken: data.refreshToken,
-                expiresIn: data.expiresIn
+            if (!oldRefreshTokenRecord || oldRefreshTokenRecord.clientId !== req.user.clientId) {
+                res.status(401).end();
+                return;
+            }
+
+
+            generateAuthTokens(oldRefreshTokenRecord.userId, oldRefreshTokenRecord.clientId, function (err, data) {
+                if (err) {
+                    res.status(500).end();
+                    return;
+                }
+
+                res.json(cipher.encryptJSON({
+                    userId: oldRefreshTokenRecord.userId,
+                    accessToken: data.accessToken,
+                    refreshToken: data.refreshToken,
+                    expiresIn: data.expiresIn
+                }, req.user.clientSecret));
             });
         });
     });
-});
 
 
 router.get('/me', passport.authenticate('bearer', {session: false}), function (req, res) {
@@ -336,12 +340,12 @@ router.post('/login-otp',
                 return;
             }
 
-            res.json({
+            res.json(cipher.encryptJSON({
                 userId: req.user.userId,
                 accessToken: data.accessToken,
                 refreshToken: data.refreshToken,
                 expiresIn: data.expiresIn
-            });
+            }, req.user.clientSecret));
         });
     });
 

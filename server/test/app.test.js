@@ -63,13 +63,6 @@ describe('integration testing signup', function () {
     }
 
 
-    function encrypt(data) {
-        return {
-            data: cipher.encrypt(JSON.stringify(data), clientSecret)
-        };
-    }
-
-
     describe("register-client", function () {
         it('should return json body on register-client', function (done) {
             request(app)
@@ -118,24 +111,29 @@ describe('integration testing signup', function () {
             request(app)
                 .post('/api/auth/register')
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
-                .send(encrypt({
+                .send(cipher.encryptJSON({
                     email: email,
                     hashPassword: utils.getHash(password),
                     username: username,
                     userData: {language: language}
-                }))
+                }, clientSecret))
                 .expect(200)
                 .end(function (err, res) {
                     if (err) {
                         return done(err);
                     }
-                    res.body.should.be.json;
-                    res.body.accessToken.should.not.be.empty;
-                    res.body.refreshToken.should.not.be.empty;
-                    res.body.expiresIn.should.not.be.empty;
-                    res.body.userId.should.not.be.empty;
 
-                    userAuthDataRegister = res.body;
+                    res.body.should.be.json;
+
+                    var data = cipher.decryptJSON(res.body.data, clientSecret);
+
+                    data.should.be.json;
+                    data.accessToken.should.not.be.empty;
+                    data.refreshToken.should.not.be.empty;
+                    data.expiresIn.should.not.be.empty;
+                    data.userId.should.not.be.empty;
+
+                    userAuthDataRegister = data;
 
                     done();
                 });
@@ -145,12 +143,12 @@ describe('integration testing signup', function () {
             request(app)
                 .post('/api/auth/register')
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
-                .send(encrypt({
+                .send(cipher.encryptJSON({
                     email: email,
                     hashPassword: utils.getHash(password),
                     username: username,
                     userData: {language: language}
-                }))
+                }, clientSecret))
                 .expect(400, "EMAIL_EXISTS", done);
         });
 
@@ -158,12 +156,12 @@ describe('integration testing signup', function () {
             request(app)
                 .post('/api/auth/register')
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
-                .send(encrypt({
+                .send(cipher.encryptJSON({
                     email: "foo",
                     hashPassword: utils.getHash(password),
                     username: username,
                     userData: {language: language}
-                }))
+                }, clientSecret))
                 .expect(400, "INVALID_EMAIL", done);
         });
     });
@@ -174,22 +172,27 @@ describe('integration testing signup', function () {
             request(app)
                 .post('/api/auth/login')
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
-                .send(encrypt({
+                .send(cipher.encryptJSON({
                     email: email,
                     hashPassword: utils.getHash(password)
-                }))
+                }, clientSecret))
                 .expect(200)
                 .end(function (err, res) {
                     if (err) {
                         return done(err);
                     }
-                    res.body.should.be.json;
-                    res.body.accessToken.should.not.be.empty;
-                    res.body.refreshToken.should.not.be.empty;
-                    res.body.expiresIn.should.not.be.empty;
-                    res.body.userId.should.not.be.empty;
 
-                    userAuthDataLogin = res.body;
+                    res.body.should.be.json;
+
+                    var data = cipher.decryptJSON(res.body.data, clientSecret);
+
+                    data.should.be.json;
+                    data.accessToken.should.not.be.empty;
+                    data.refreshToken.should.not.be.empty;
+                    data.expiresIn.should.not.be.empty;
+                    data.userId.should.not.be.empty;
+
+                    userAuthDataLogin = data;
 
                     done();
                 });
@@ -199,10 +202,10 @@ describe('integration testing signup', function () {
             request(app)
                 .post('/api/auth/login')
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
-                .send(encrypt({
+                .send(cipher.encryptJSON({
                     email: "aa@aa.aa",
                     hashPassword: utils.getHash(password)
-                }))
+                }, clientSecret))
                 .expect(400, "WRONG_EMAIL_OR_PASSWORD", done);
 
         });
@@ -211,10 +214,10 @@ describe('integration testing signup', function () {
             request(app)
                 .post('/api/auth/login')
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
-                .send(encrypt({
+                .send(cipher.encryptJSON({
                     email: email,
                     hashPassword: utils.getHash("dasddsfdsfsdf")
-                }))
+                }, clientSecret))
                 .expect(400, "WRONG_EMAIL_OR_PASSWORD", done);
         });
 
@@ -222,9 +225,9 @@ describe('integration testing signup', function () {
             request(app)
                 .post('/api/auth/login')
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
-                .send(encrypt({
+                .send(cipher.encryptJSON({
                     email: email
-                }))
+                }, clientSecret))
                 .expect(400, "HASHPASSWORD_IS_EMPTY", done);
         });
     });
@@ -243,13 +246,18 @@ describe('integration testing signup', function () {
                     if (err) {
                         return done(err);
                     }
-                    res.body.should.be.json;
-                    res.body.accessToken.should.not.be.empty;
-                    res.body.refreshToken.should.not.be.empty;
-                    res.body.expiresIn.should.not.be.empty;
-                    res.body.userId.should.not.be.empty;
 
-                    userAuthDataRefresh = res.body;
+                    res.body.should.be.json;
+
+                    var data = cipher.decryptJSON(res.body.data, clientSecret);
+
+                    data.should.be.json;
+                    data.accessToken.should.not.be.empty;
+                    data.refreshToken.should.not.be.empty;
+                    data.expiresIn.should.not.be.empty;
+                    data.userId.should.not.be.empty;
+
+                    userAuthDataRefresh = data;
 
                     done();
                 });
@@ -353,10 +361,10 @@ describe('integration testing signup', function () {
             request(app)
                 .post('/api/auth/login')
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
-                .send(encrypt({
+                .send(cipher.encryptJSON({
                     email: email,
                     hashPassword: utils.getHash(password)
-                }))
+                }, clientSecret))
                 .expect(200)
                 .end(function (err, res) {
                     if (err) {
@@ -364,11 +372,15 @@ describe('integration testing signup', function () {
                     }
 
                     res.body.should.be.json;
-                    res.body.temporaryToken.should.not.be.empty;
-                    res.body.expiresIn.should.not.be.empty;
-                    res.body.userId.should.not.be.empty;
 
-                    userTemporaryToken = res.body;
+                    var data = cipher.decryptJSON(res.body.data, clientSecret);
+
+                    data.should.be.json;
+                    data.temporaryToken.should.not.be.empty;
+                    data.expiresIn.should.not.be.empty;
+                    data.userId.should.not.be.empty;
+
+                    userTemporaryToken = data;
 
                     done();
                 });
@@ -387,13 +399,18 @@ describe('integration testing signup', function () {
                     if (err) {
                         return done(err);
                     }
-                    res.body.should.be.json;
-                    res.body.accessToken.should.not.be.empty;
-                    res.body.refreshToken.should.not.be.empty;
-                    res.body.expiresIn.should.not.be.empty;
-                    res.body.userId.should.not.be.empty;
 
-                    userAuthDataTwoFactor = res.body;
+                    res.body.should.be.json;
+
+                    var data = cipher.decryptJSON(res.body.data, clientSecret);
+
+                    data.should.be.json;
+                    data.accessToken.should.not.be.empty;
+                    data.refreshToken.should.not.be.empty;
+                    data.expiresIn.should.not.be.empty;
+                    data.userId.should.not.be.empty;
+
+                    userAuthDataTwoFactor = data;
 
                     done();
                 });

@@ -5,12 +5,7 @@ var cipher = require('./utils').Cipher();
  */
 module.exports = function (req, res, next) {
     if (req.body.data && req.user && req.user.clientSecret) {
-        var data = cipher.decrypt(req.body.data, req.user.clientSecret);
-
-        try {
-            req.body = JSON.parse(data);
-        } catch (e) {
-        }
+        req.body = cipher.decryptJSON(req.body.data, req.user.clientSecret);
     }
 
     return next();

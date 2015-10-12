@@ -15,7 +15,7 @@ encrypt() - шифрование 'aes-256-ctr' по clientSecret
 [decryptBody]
 /register
 	-> {data: encrypt(hash(пароль)/логин + userData (language и что угодно еще))}
-	<- authData
+	<- {data: encrypt(authData)}
 
 
 взять из фаркла:
@@ -31,13 +31,13 @@ encrypt() - шифрование 'aes-256-ctr' по clientSecret
 /login
 	-> {data: encrypt(hash(пароль)/логин)}
 		// удаляем для этого клиента старые токены
-	<- authData
+	<- {data: encrypt(authData)}
 
 [BasicStrategy]
 /refresh
 	-> refreshToken
 		// удаляем старые токены
-	<- authData
+	<- {data: encrypt(authData)}
 
 
 
@@ -57,7 +57,7 @@ encrypt() - шифрование 'aes-256-ctr' по clientSecret
 /login
 	-> {data: encrypt(hash(пароль)/логин)}
 		// удаляем для этого клиента старые временные токены
-	<- temporaryToken (10 мин)
+	<- {data: encrypt(temporaryToken)} (10 мин)
 
 
 [TemporaryBearerStrategy] - проверяем временный токен и вбрасываем юзера в TotpStrategy
@@ -65,7 +65,7 @@ encrypt() - шифрование 'aes-256-ctr' по clientSecret
 /login-otp
 	-> 
 		// удаляем temporaryToken
-	<- authData
+	<- {data: encrypt(authData)}
 
 /refresh
 
