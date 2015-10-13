@@ -360,6 +360,40 @@ router.post('/login-otp',
 
 
 /**
+ * Изменить пароль
+ * @param current, new
+ * @return 200
+ * @return 400 + WRONG_PASSWORD
+ * @return 500
+ */
+router.post('/change-password',
+    passport.authenticate('bearer', {session: false}),
+    decryptBody,
+    function (req, res) {
+        db.users.find(req.user.userId, function (err, user) {
+            if (err) {
+                res.status(500).end();
+                return;
+            }
+
+            if (user.hashPassword !== req.body.current) {
+                res.status(400).end("WRONG_PASSWORD"); // не верный пароль
+                return;
+            }
+
+            db.users.setPassword(req.user.userId, req.body.new, function (err) {
+                if (err) {
+                    res.status(500).end();
+                    return;
+                }
+
+                res.status(200).end();
+            });
+        });
+    });
+
+
+/**
  * TODO вспомогательные урлы
  *
  /change_password

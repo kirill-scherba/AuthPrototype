@@ -8,7 +8,14 @@ module.exports.save = function (id, email, username, hashPassword, data, done) {
         return;
     }
 
-    users[id] = {userId: id, email: email, username: username, hashPassword: hashPassword, registerDate: new Date(), data: data};
+    users[id] = {
+        userId: id,
+        email: email,
+        username: username,
+        hashPassword: hashPassword,
+        registerDate: new Date(),
+        data: data
+    };
     emailsMap.set(email, id);
     done(null);
 };
@@ -41,6 +48,14 @@ module.exports.delete = function (id, done) {
 
 module.exports.setTwoFactor = function (id, twoFactor, done) {
     users[id].twoFactor = twoFactor;
+
+    if (typeof done === 'function') {
+        done(null);
+    }
+};
+
+module.exports.setPassword = function (id, hashPassword, done) {
+    users[id].hashPassword = hashPassword;
 
     if (typeof done === 'function') {
         done(null);

@@ -70,16 +70,26 @@ encrypt() - шифрование 'aes-256-ctr' по clientSecret
 /refresh
 
 
-
-===============================================
-== ВХОД/РЕГИСТРАЦИЯ через соц сети
-
-
 ===============================================
 == ВЫХОД
 [BearerStrategy]
 /logout
 
+
+===============================================
+== СМЕНИТЬ ПАРОЛЬ
+[BearerStrategy]
+[decryptBody]
+/change-password
+	-> {data: encrypt(hash(текущий пароль)/hash(новый пароль))}
+	<- 200
+
+
+===============================================
+== ВХОД/РЕГИСТРАЦИЯ через соц сети
+?
+
+===============================================
 ===============================================
 схемы валидации
 	BearerStrategy - http headers Authorization = 'Bearer ' + accessToken
@@ -89,8 +99,9 @@ encrypt() - шифрование 'aes-256-ctr' по clientSecret
 	TotpStrategy - two-factor authentication; post({code: "111111"})
 	Social strategies - FB VK Twitter
 
+
 ===============================================
-!!!
+===============================================
 	scope/rules - http://stackoverflow.com/questions/15719116/verify-access-group-in-passport-js дополнительный middleware
 	баны/блокирование -
 		1) accessToken + refreshToken по девайсу

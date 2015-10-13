@@ -56,6 +56,31 @@ passport.use(new BearerStrategy(
                     user.clientId = token.clientId;
                     return done(null, user);
                 });
+
+
+                async.parallel([
+                        function (callback) {
+                            db.users.find(token.userId, callback);
+                        },
+                        function (callback) {
+                            db.clients.find(token.clientId, callback);
+                        }
+                    ],
+                    function (err, results) {
+                        if (err) {
+                            return done(err);
+                        }
+                        if (!results[0] || !results[1]) {
+                            return done(null, false);
+                        }
+
+
+                        var user = results[0];
+                        user.clientId = results[1].clientId;
+                        user.clientSecret = results[1].clientSecret;
+                        user.clientData = results[1].data;
+                        return done(null, user);
+                    });
             }
         });
     }
