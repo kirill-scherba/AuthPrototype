@@ -434,11 +434,24 @@ router.post('/restore',
     });
 
 
+router.post('/resend-email',
+    passport.authenticate('bearer', {session: false}),
+    function (req, res) {
+        res.status(200).end();
+
+        process.nextTick(function () {
+            var token = utils.emailToken(req.user.email + req.user.username);
+            db.emailValidation.save(req.user.email, token);
+
+            // TODO sendConfirmationEmail(req.user.email, req.user.language, req.protocol + '://' + req.get('host'));
+        });
+    });
+
 /**
  * TODO вспомогательные урлы
  *
- /resend_email
  /verify
+ /change-pwd - станица на которую человек попадет для восстановления пароля
  */
 
 module.exports = router;
