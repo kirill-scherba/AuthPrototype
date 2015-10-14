@@ -394,13 +394,48 @@ router.post('/change-password',
 
 
 /**
+ * Восстановление пароля по email
+ * @param email
+ * @return 200 - сообщение отправлено или email не найден
+ * @return 400 + email нет в запросе
+ * @return 500
+ */
+router.post('/restore',
+    passport.authenticate('basic', {session: false}),
+    decryptBody, // чтобы закрыть email пользователя
+    function (req, res) {
+        if (!req.body.email) {
+            res.status(400).end();
+            return;
+        }
+
+        db.users.findByEmail(req.body.email, function (err, user) {
+            if (err && err.message === "EMAIL_NOT_FOUND" || !user) {
+                res.status(200).end(); // не показываем, что такого e-mail нет
+                return;
+            }
+
+            if (err) {
+                res.status(500).end();
+                return;
+            }
+
+            res.status(200).end();
+            process.nextTick(function () {
+                var token = utils.emailToken(req.body.email + user.username);
+                db.emailValidation.save(req.body.email, token);
+
+                // TODO sendRestoreEmail(req.body.email, token, user, req.protocol + '://' + req.get('host'));
+            });
+        });
+    });
+
+
+/**
  * TODO вспомогательные урлы
  *
- /change_password
  /resend_email
  /verify
- /restore
-
  */
 
 module.exports = router;
