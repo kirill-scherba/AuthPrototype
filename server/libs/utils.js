@@ -42,12 +42,6 @@ module.exports.emailToken = function (userStr) {
 };
 
 
-/** Пароль должен содержать от 4 до 20 символов */
-module.exports.validatePassword = function (password) {
-    return password && password.length >= 4 && password.length <= 20;
-};
-
-
 module.exports.validateEmail = function (email) {
     return re.test(email);
 };
