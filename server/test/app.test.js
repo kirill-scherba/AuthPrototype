@@ -356,6 +356,17 @@ describe('integration testing signup', function () {
                 .expect(200, done);
         });
 
+        it("should return 400 on request with wrong current password", function (done) {
+            request(app)
+                .post('/api/auth/change-password')
+                .set('Authorization', 'Bearer ' + userAuthDataRefresh.accessToken)
+                .send(cipher.encryptJSON({
+                    current: utils.getHash(password),
+                    new: utils.getHash(passwordNew)
+                }, clientSecret))
+                .expect(400, done);
+        });
+
         it("should logout", function (done) {
             request(app)
                 .post('/api/auth/logout')
