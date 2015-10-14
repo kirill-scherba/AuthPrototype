@@ -102,6 +102,9 @@ router.post('/register',
                     }, req.user.clientSecret));
 
                     process.nextTick(function () {
+                        var token = utils.emailToken(req.body.email + req.body.username);
+                        db.emailValidation.save(req.body.email, token);
+
                         // TODO sendConfirmationEmail(req.body.email, req.body.language, req.protocol + '://' + req.get('host'));
                     });
                 });
@@ -423,7 +426,7 @@ router.post('/restore',
             res.status(200).end();
             process.nextTick(function () {
                 var token = utils.emailToken(req.body.email + user.username);
-                db.emailValidation.save(req.body.email, token);
+                db.emailRestore.save(req.body.email, token);
 
                 // TODO sendRestoreEmail(req.body.email, token, user, req.protocol + '://' + req.get('host'));
             });
