@@ -41,22 +41,9 @@ passport.use(new BearerStrategy(
                     return done(err);
                 });
             } else {
-                if (!token.userId) { // сомнительное условие т.к. поле userId обязательное
+                if (!token.userId || !token.clientId) { // сомнительное условие т.к. поле userId обязательное
                     return done(null, false);
                 }
-
-                db.users.find(token.userId, function (err, user) {
-                    if (err) {
-                        return done(err);
-                    }
-                    if (!user) {
-                        return done(null, false);
-                    }
-
-                    user.clientId = token.clientId;
-                    return done(null, user);
-                });
-
 
                 async.parallel([
                         function (callback) {
@@ -103,7 +90,7 @@ passport.use('temporary-bearer', new BearerStrategy(
                     return done(err);
                 });
             } else {
-                if (!token.userId) { // сомнительное условие т.к. поле userId обязательное
+                if (!token.userId || !token.clientId) { // сомнительное условие т.к. поле userId обязательное
                     return done(null, false);
                 }
 
