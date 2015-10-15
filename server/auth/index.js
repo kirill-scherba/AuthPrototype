@@ -290,7 +290,7 @@ router.post('/logout', passport.authenticate('bearer', {session: false}), functi
  *
  * bearer стратегия отдает побъект пользователя
  */
-router.get('/setup-two-factor', passport.authenticate('bearer', {session: false}), function (req, res) {
+router.post('/setup-two-factor', passport.authenticate('bearer', {session: false}), function (req, res) {
     var encodedKey;
     var otpUrl;
     var qrImage;

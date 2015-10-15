@@ -415,7 +415,7 @@ describe('integration testing signup', function () {
 
         it("should set two-factor authentication for user", function (done) {
             request(app)
-                .get('/api/auth/setup-two-factor')
+                .post('/api/auth/setup-two-factor')
                 .set('Authorization', 'Bearer ' + userAuthDataRefresh.accessToken)
                 .expect(200)
                 .end(function (err, res) {
