@@ -423,7 +423,16 @@ describe('integration testing signup', function () {
                         return done(err);
                     }
 
-                    twoFactorData = res.body;
+                    res.body.should.be.json;
+
+                    var data = cipher.decryptJSON(res.body.data, clientSecret);
+
+                    data.should.be.json;
+                    data.twoFactor.should.be.json;
+                    data.twoFactor.key.should.be.json;
+                    data.twoFactor.qrImage.should.be.json;
+
+                    twoFactorData = data.twoFactor;
 
                     done();
                 });

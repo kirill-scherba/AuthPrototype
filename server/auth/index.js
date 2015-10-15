@@ -304,7 +304,12 @@ router.get('/setup-two-factor', passport.authenticate('bearer', {session: false}
         otpUrl = 'otpauth://totp/' + req.user.email + '?secret=' + encodedKey + '&period=' + req.user.twoFactor.period;
         qrImage = 'https://chart.googleapis.com/chart?chs=166x166&chld=L|0&cht=qr&chl=' + encodeURIComponent(otpUrl);
 
-        res.json({user: req.user.userId, key: encodedKey.toString(), qrImage: qrImage});
+        res.json(cipher.encryptJSON({
+            twoFactor: {
+                key: encodedKey.toString(),
+                qrImage: qrImage
+            }
+        }, req.user.clientSecret));
     } else {
         // new two-factor setup.  generate and save a secret key
         var key = utils.token(10);
@@ -333,7 +338,12 @@ router.get('/setup-two-factor', passport.authenticate('bearer', {session: false}
                 return;
             }
 
-            res.json({user: req.user.userId, key: encodedKey.toString(), qrImage: qrImage});
+            res.json(cipher.encryptJSON({
+                twoFactor: {
+                    key: encodedKey.toString(),
+                    qrImage: qrImage
+                }
+            }, req.user.clientSecret));
         });
     }
 });

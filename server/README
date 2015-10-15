@@ -49,6 +49,7 @@ encrypt() - шифрование 'aes-256-ctr' по clientSecret
 
 [BearerStrategy]
 /setup-two-factor - установить двухфакторную авторизацию
+	<- {data: encrypt(twoFactor: {key, qrImage})}
 
 // подразумевается /logout
 
