@@ -430,6 +430,7 @@ describe('integration testing signup', function () {
                     data.should.be.json;
                     data.twoFactor.should.be.json;
                     data.twoFactor.key.should.be.json;
+                    data.twoFactor.otpUrl.should.be.json;
                     data.twoFactor.qrImage.should.be.json;
 
                     twoFactorData = data.twoFactor;

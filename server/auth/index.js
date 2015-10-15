@@ -307,7 +307,8 @@ router.post('/setup-two-factor', passport.authenticate('bearer', {session: false
         res.json(cipher.encryptJSON({
             twoFactor: {
                 key: encodedKey.toString(),
-                qrImage: qrImage
+                qrImage: qrImage,
+                otpUrl: otpUrl
             }
         }, req.user.clientSecret));
     } else {
@@ -330,7 +331,6 @@ router.post('/setup-two-factor', passport.authenticate('bearer', {session: false
         // reference: https://code.google.com/p/google-authenticator/wiki/KeyUriFormat
         otpUrl = 'otpauth://totp/' + req.user.email + '?secret=' + encodedKey + '&period=' + period;
         qrImage = 'https://chart.googleapis.com/chart?chs=166x166&chld=L|0&cht=qr&chl=' + encodeURIComponent(otpUrl);
-        // TODO свой генератор qr кодов нужен
 
         db.users.setTwoFactor(req.user.userId, {key: key, period: period}, function (err) {
             if (err) {
@@ -341,7 +341,8 @@ router.post('/setup-two-factor', passport.authenticate('bearer', {session: false
             res.json(cipher.encryptJSON({
                 twoFactor: {
                     key: encodedKey.toString(),
-                    qrImage: qrImage
+                    qrImage: qrImage,
+                    otpUrl: otpUrl
                 }
             }, req.user.clientSecret));
         });
