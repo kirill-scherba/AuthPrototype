@@ -8,7 +8,7 @@ module.exports.save = function (id, email, username, hashPassword, data, done) {
         return;
     }
 
-    users[id] = {
+    var newUser = {
         userId: id,
         email: email,
         username: username,
@@ -16,8 +16,10 @@ module.exports.save = function (id, email, username, hashPassword, data, done) {
         registerDate: new Date(),
         data: data
     };
+    users[id] = newUser;
     emailsMap.set(email, id);
-    done(null);
+
+    done(null, newUser);
 };
 
 module.exports.find = function (id, done) {
@@ -62,13 +64,71 @@ module.exports.setPassword = function (id, hashPassword, done) {
     }
 };
 
-//module.exports.findByUsername = function (username, done) {
-//    for (var i in users) {
-//        if (users.hasOwnProperty(i)) {
-//            if (users[i].username === username) {
-//                return done(null, users[i]);
-//            }
-//        }
-//    }
-//    return done(null, null);
-//};
+
+/**
+ * Если аккаунт привязан к fb, то вернуть его, если нет, то создадим пользователя
+ */
+module.exports.createIfNotExistsWithFb = function (id, fb, username, data, done) {
+    this.findByFb(fb, function (err, user) {
+        if (err) {
+            done(err);
+            return;
+        }
+
+        if (user) {
+            done(null, user);
+            return;
+        }
+
+        var newUser = {
+            userId: id,
+            fb: fb, //fb id
+            username: username,
+            registerDate: new Date(),
+            data: data
+        };
+        users[id] = newUser;
+
+        done(null, newUser);
+    });
+};
+
+module.exports.setLinkFb = function (id, fb, done) {
+    this.findByFb(fb, function (err, user) {
+        if (err) {
+            done(err);
+            return;
+        }
+
+        if (user) {
+            // этот fb аккаунт привязан к другому пользователю
+            done(new Error("EXISTS"));
+            return;
+        }
+
+        users[id].fb = fb;
+
+        if (typeof done === 'function') {
+            done(null);
+        }
+    });
+};
+
+module.exports.setUnlinkFb = function (id, done) {
+    users[id].fb = null;
+
+    if (typeof done === 'function') {
+        done(null);
+    }
+};
+
+module.exports.findByFb = function (fb, done) {
+    for (var i in users) {
+        if (users.hasOwnProperty(i)) {
+            if (users[i].fb === fb) {
+                return done(null, users[i]);
+            }
+        }
+    }
+    return done(null, null);
+};
