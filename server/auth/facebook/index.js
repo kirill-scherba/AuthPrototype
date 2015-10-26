@@ -5,6 +5,8 @@
 var express = require('express');
 var passport = require('passport');
 var db = require('./../../db');
+var log = require('./../../libs/log');
+
 
 var router = express.Router();
 
@@ -38,6 +40,7 @@ router.get('/callback', passport.authenticate('facebook', {
         // You could put your own behavior in here, fx: you could force auth again...
         // res.redirect('/auth/facebook/');
         if (err) {
+            log.error(err);
             res.status(400);
             res.send({error: "error", message: err.message}).end();
         }
@@ -70,6 +73,7 @@ router.get('/unlink',
     function (req, res) {
         db.users.setUnlinkFb(req.user.userId, function (err) {
             if (err) {
+                log.error(err);
                 res.status(500).end();
                 return;
             }

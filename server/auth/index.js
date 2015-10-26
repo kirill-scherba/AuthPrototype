@@ -1,11 +1,13 @@
 var express = require('express');
 var passport = require('passport');
 var base32 = require('thirty-two');
-var utils = require('./../libs/utils');
 var db = require('./../db/index');
+var utils = require('./../libs/utils');
 var config = require('./../libs/config');
+var log = require('./../libs/log');
 var decryptBody = require('./../libs/decryptBody');
-var cipher = require('./../libs/utils').Cipher();
+
+var cipher = utils.Cipher();
 
 var router = express.Router();
 router.use('/facebook', require('./facebook'));
@@ -69,6 +71,7 @@ router.post('/register',
             }
 
             if (err) {
+                log.error(err);
                 res.status(500).end();
                 return;
             }
@@ -77,6 +80,7 @@ router.post('/register',
             var expirationDate = utils.calculateExpirationDate();
             db.accessTokens.save(accessToken, expirationDate, userId, req.user.clientId, function (err) {
                 if (err) {
+                    log.error(err);
                     res.status(500).end();
                     db.users.delete(userId);
                     return;
@@ -85,6 +89,7 @@ router.post('/register',
                 var refreshToken = utils.token();
                 db.refreshTokens.save(refreshToken, userId, req.user.clientId, function (err) {
                     if (err) {
+                        log.error(err);
                         res.status(500).end();
                         db.users.delete(userId);
                         return;
@@ -118,6 +123,7 @@ function generateAuthTokens(userId, clientId, done) {
     var expirationDate = utils.calculateExpirationDate();
     db.accessTokens.save(accessToken, expirationDate, userId, clientId, function (err) {
         if (err) {
+            log.error(err);
             done(err);
             return;
         }
@@ -125,6 +131,7 @@ function generateAuthTokens(userId, clientId, done) {
         var refreshToken = utils.token();
         db.refreshTokens.save(refreshToken, userId, clientId, function (err) {
             if (err) {
+                log.error(err);
                 done(err);
                 return;
             }
@@ -178,6 +185,7 @@ router.post('/login',
             }
 
             if (err) {
+                log.error(err);
                 res.status(500).end();
                 return;
             }
@@ -188,6 +196,7 @@ router.post('/login',
                 var temporaryExpirationDate = utils.calculateExpirationDate(config.get('temporaryTokenExpiresIn'));
                 db.temporaryTokens.save(temporaryToken, temporaryExpirationDate, user.userId, req.user.clientId, function (err) {
                     if (err) {
+                        log.error(err);
                         res.status(500).end();
                         return;
                     }
@@ -205,6 +214,7 @@ router.post('/login',
             } else {
                 generateAuthTokens(user.userId, req.user.clientId, function (err, data) {
                     if (err) {
+                        log.error(err);
                         res.status(500).end();
                         return;
                     }
@@ -243,6 +253,7 @@ router.post('/refresh',
 
         db.refreshTokens.find(req.body.refreshToken, function (err, oldRefreshTokenRecord) {
             if (err) {
+                log.error(err);
                 res.status(500).end();
                 return;
             }
@@ -255,6 +266,7 @@ router.post('/refresh',
 
             generateAuthTokens(oldRefreshTokenRecord.userId, oldRefreshTokenRecord.clientId, function (err, data) {
                 if (err) {
+                    log.error(err);
                     res.status(500).end();
                     return;
                 }
@@ -334,6 +346,7 @@ router.post('/setup-two-factor', passport.authenticate('bearer', {session: false
 
         db.users.setTwoFactor(req.user.userId, {key: key, period: period}, function (err) {
             if (err) {
+                log.error(err);
                 res.status(500).end();
                 return;
             }
@@ -356,6 +369,7 @@ router.post('/login-otp',
     function (req, res) {
         generateAuthTokens(req.user.userId, req.user.clientId, function (err, data) {
             if (err) {
+                log.error(err);
                 res.status(500).end();
                 return;
             }
@@ -386,6 +400,7 @@ router.post('/change-password',
     function (req, res) {
         db.users.find(req.user.userId, function (err, user) {
             if (err) {
+                log.error(err);
                 res.status(500).end();
                 return;
             }
@@ -397,6 +412,7 @@ router.post('/change-password',
 
             db.users.setPassword(req.user.userId, req.body.new, function (err) {
                 if (err) {
+                    log.error(err);
                     res.status(500).end();
                     return;
                 }
@@ -430,6 +446,7 @@ router.post('/restore',
             }
 
             if (err) {
+                log.error(err);
                 res.status(500).end();
                 return;
             }
