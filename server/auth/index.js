@@ -363,6 +363,48 @@ router.post('/setup-two-factor', passport.authenticate('bearer', {session: false
 });
 
 
+/**
+ * Отключить двухфакторную авторизацию
+ *
+ * @param hashPassword
+ * @return 200
+ * @return 400 + WRONG_PASSWORD
+ * @return 500
+ */
+router.post('/disable-two-factor',
+    passport.authenticate('bearer', {session: false}),
+    decryptBody,
+    function (req, res) {
+        db.users.find(req.user.userId, function (err, user) {
+            if (err) {
+                log.error(err);
+                res.status(500).end();
+                return;
+            }
+
+            if (user.hashPassword !== req.body.hashPassword) {
+                res.status(400).end("WRONG_PASSWORD"); // не верный пароль
+                return;
+            }
+
+            if (!req.user.twoFactor) {
+                res.status(200).end();
+                return;
+            }
+
+            db.users.disableTwoFactor(req.user.userId, function (err) {
+                if (err) {
+                    log.error(err);
+                    res.status(500).end();
+                    return;
+                }
+
+                res.status(200).end();
+            });
+        });
+    });
+
+
 router.post('/login-otp',
     passport.authenticate('temporary-bearer', {session: false}), // получает юзера и пробрасывает в totp стратегию
     passport.authenticate('totp', {session: false}),

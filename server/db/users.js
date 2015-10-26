@@ -56,6 +56,14 @@ module.exports.setTwoFactor = function (id, twoFactor, done) {
     }
 };
 
+module.exports.disableTwoFactor = function (id, done) {
+    users[id].twoFactor = null;
+
+    if (typeof done === 'function') {
+        done(null);
+    }
+};
+
 module.exports.setPassword = function (id, hashPassword, done) {
     users[id].hashPassword = hashPassword;
 

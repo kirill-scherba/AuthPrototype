@@ -25,6 +25,7 @@ describe('integration testing signup', function () {
     var userAuthDataLogin;
     var userAuthDataRefresh;
     var userAuthDataTwoFactor;
+    var userAuthDataDisableTwoFactor;
 
 
     function callMe(accessToken, done) {
@@ -409,7 +410,7 @@ describe('integration testing signup', function () {
     });
 
 
-    describe("two-factor authentication", function () {
+    describe("setup-two-factor authentication", function () {
         var twoFactorData;
         var userTemporaryToken;
 
@@ -506,16 +507,72 @@ describe('integration testing signup', function () {
     });
 
 
+    describe("disable-two-factor authentication", function () {
+        it("should return 400 on request with wrong password", function (done) {
+            request(app)
+                .post('/api/auth/disable-two-factor')
+                .set('Authorization', 'Bearer ' + userAuthDataTwoFactor.accessToken)
+                .send(cipher.encryptJSON({
+                    hashPassword: utils.getHash('test')
+                }, clientSecret))
+                .expect(400, done);
+        });
+
+        it("should disable-two-factor", function (done) {
+            request(app)
+                .post('/api/auth/disable-two-factor')
+                .set('Authorization', 'Bearer ' + userAuthDataTwoFactor.accessToken)
+                .send(cipher.encryptJSON({
+                    hashPassword: utils.getHash(passwordNew)
+                }, clientSecret))
+                .expect(200, done);
+        });
+
+        it("should login without two-factor", function (done) {
+            request(app)
+                .post('/api/auth/login')
+                .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
+                .send(cipher.encryptJSON({
+                    email: email,
+                    hashPassword: utils.getHash(passwordNew)
+                }, clientSecret))
+                .expect(200)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    res.body.should.be.json;
+
+                    var data = cipher.decryptJSON(res.body.data, clientSecret);
+
+                    data.should.be.json;
+                    data.accessToken.should.not.be.empty;
+                    data.refreshToken.should.not.be.empty;
+                    data.expiresIn.should.not.be.empty;
+                    data.userId.should.not.be.empty;
+                    data.email.should.not.be.empty;
+                    data.username.should.not.be.empty;
+                    data.userData.should.not.be.empty;
+
+                    userAuthDataDisableTwoFactor = data;
+
+                    done();
+                });
+        });
+    });
+
+
     describe("logout", function () {
         it("should logout", function (done) {
             request(app)
                 .post('/api/auth/logout')
-                .set('Authorization', 'Bearer ' + userAuthDataTwoFactor.accessToken)
+                .set('Authorization', 'Bearer ' + userAuthDataDisableTwoFactor.accessToken)
                 .expect(200, done);
         });
 
         it("should return 401 on request by secure path after logout", function (done) {
-            callMeAndFail(userAuthDataTwoFactor.accessToken, done);
+            callMeAndFail(userAuthDataDisableTwoFactor.accessToken, done);
         });
 
         it("should return 401 when you try get new authData(tokens) after logout", function (done) {
