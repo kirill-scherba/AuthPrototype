@@ -522,14 +522,4 @@ describe('integration testing signup', function () {
             callRefreshAndFail(userAuthDataRefresh.refreshToken, done);
         });
     });
-
-
-    describe("facebook", function () {
-        it("facebook auth request"/*, function (done) {
-         request(app)
-         .get('/api/auth/facebook')
-         .set('Authorization', 'Bearer ' + userAuthDataRefresh.accessToken)
-         .expect(200, done);
-         }*/);
-    });
 });
