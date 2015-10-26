@@ -3,7 +3,7 @@ var passport = require('passport');
 var base32 = require('thirty-two');
 var utils = require('./../libs/utils');
 var db = require('./../db/index');
-var config = require('./../config');
+var config = require('./../libs/config');
 var decryptBody = require('./../libs/decryptBody');
 var cipher = require('./../libs/utils').Cipher();
 
@@ -185,7 +185,7 @@ router.post('/login',
 
             if (user.twoFactor) {
                 var temporaryToken = utils.token();
-                var temporaryExpirationDate = utils.calculateExpirationDate(config.temporaryTokenExpiresIn);
+                var temporaryExpirationDate = utils.calculateExpirationDate(config.get('temporaryTokenExpiresIn'));
                 db.temporaryTokens.save(temporaryToken, temporaryExpirationDate, user.userId, req.user.clientId, function (err) {
                     if (err) {
                         res.status(500).end();
@@ -325,7 +325,7 @@ router.post('/setup-two-factor', passport.authenticate('bearer', {session: false
          *
          * Google Authenticator: support for 30-second TOTP codes
          */
-        var period = config.twoFactorPeriod;
+        var period = config.get('twoFactorPeriod');
 
         // generate QR code for scanning into Google Authenticator
         // reference: https://code.google.com/p/google-authenticator/wiki/KeyUriFormat

@@ -1,4 +1,5 @@
 {
+  "port": 3667,
   "facebook": {
     "clientId": 1,
     "clientSecret": "secret",

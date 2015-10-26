@@ -1,6 +1,6 @@
 var passport = require('passport');
 var FacebookStrategy = require('passport-facebook').Strategy;
-var config = require('./../../config');
+var config = require('./../../libs/config');
 var utils = require('./../../libs/utils');
 var db = require('./../../db');
 
@@ -9,9 +9,9 @@ var db = require('./../../db');
  * регистрация/вход
  */
 passport.use(new FacebookStrategy({
-        clientID: config.facebook.clientId,
-        clientSecret: config.facebook.clientSecret,
-        callbackURL: config.facebook.callbackURL,
+        clientID: config.get('facebook:clientId'),
+        clientSecret: config.get('facebook:clientSecret'),
+        callbackURL: config.get('facebook:callbackURL'),
         enableProof: true,
         passReqToCallback: true
     },
@@ -36,9 +36,9 @@ passport.use(new FacebookStrategy({
  * Привязка аккаунта зарешистрированного пользователя
  */
 passport.use('facebook-connect', new FacebookStrategy({
-        clientID: config.facebook.clientId,
-        clientSecret: config.facebook.clientSecret,
-        callbackURL: config.facebook.callbackConnectURL,
+        clientID: config.get('facebook:clientId'),
+        clientSecret: config.get('facebook:clientSecret'),
+        callbackURL: config.get('facebook:callbackConnectURL'),
         enableProof: true,
         passReqToCallback: true
     },
