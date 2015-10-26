@@ -27,7 +27,6 @@ module.exports.removeExpired = function (done) {
         }
     }
     for (var i = 0; i < tokensToDelete.length; ++i) {
-        console.log("Deleting token:" + key);
         delete tokens[tokensToDelete[i]];
     }
     return done(null);
