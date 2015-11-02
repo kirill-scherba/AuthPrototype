@@ -11,6 +11,7 @@ var cipher = utils.Cipher();
 
 var router = express.Router();
 router.use('/facebook', require('./facebook'));
+router.use('/social', require('./social'));
 
 
 router.get('/', function (req, res) {
