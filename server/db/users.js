@@ -1,4 +1,4 @@
-var utils = require('./../../../libs/utils');
+var utils = require('./../libs/utils');
 
 var users = {};
 
