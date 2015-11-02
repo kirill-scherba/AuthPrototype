@@ -1,77 +1,172 @@
-// https://github.com/scotch-io/easy-node-authentication/blob/linking/app/routes.js
-// https://scotch.io/tutorials/easy-node-authentication-linking-all-accounts-together
-//http://stackoverflow.com/a/11213722
+/**
+ * сперва юзер авторизуется через fb анонимно для сервера
+ * генерируется токен, записывается в бд и отдается пользователю
+ * потом пользователь с токеном проходит по нужному урлу
+ *  /signin
+ *  /link
+ *  /unlink
+ * сервер привязывает его авторизацию на fb к юзеру
+ */
 
+var querystring = require('querystring');
 var express = require('express');
 var passport = require('passport');
 var db = require('./../../db');
 var log = require('./../../libs/log');
+var decryptBody = require('./../../libs/decryptBody');
+var utils = require('./../../libs/utils');
+var config = require('./../../libs/config');
 
+var cipher = utils.Cipher();
 
 var router = express.Router();
 
-// =============================================================================
-// AUTHENTICATE (FIRST LOGIN) ==================================================
-// =============================================================================
 
 // Redirect the user to Facebook for authentication.  When complete,
-// Facebook will redirect the user back to the application at
-//     api/auth/facebook/callback
+// Facebook will redirect the user back to the application at api/auth/facebook/callback
 router.get('/', passport.authenticate('facebook', {scope: 'email'}));
 
 // Facebook will redirect the user to this URL after approval.  Finish the
 // authentication process by attempting to obtain an access token.  If
 // access was granted, the user will be logged in.  Otherwise,
 // authentication has failed.
-router.get('/callback', passport.authenticate('facebook', {
-        //successRedirect: '/?status=success',
-        //failureRedirect: '/?status=failure',
-        session: false
-    }),
-    // on success
+router.get('/callback', passport.authenticate('facebook', {session: false}),
+    /**
+     * on success
+     * пишем в БД временный токен
+     */
     function (req, res) {
-        // return the token or you would wish otherwise give eg. a succes message
-        res.json({success: "success", data: JSON.stringify(req.user.access_token)}).end();
+        var temporaryToken = utils.token();
+        var temporaryExpirationDate = utils.calculateExpirationDate(config.get('temporaryTokenExpiresIn'));
+        db.socialTemporaryTokens.save(temporaryToken, 'facebook', temporaryExpirationDate, req.user.profile, req.user.accessToken, req.user.refreshToken, function (err) {
+            if (err) {
+                log.error(err);
+                res.redirect(req.baseUrl + '/failure');
+                return;
+            }
+
+            res.redirect(req.baseUrl + '/success?' + querystring.stringify({token: temporaryToken}));
+        });
     },
 
-    // on error; likely to be something FacebookTokenError token invalid or already used token,
-    // these errors occur when the user logs in twice with the same token
+    // on error; likely to be something FacebookTokenError token invalid or already used token, these errors occur when the user logs in twice with the same token
     function (err, req, res, next) {
-        // You could put your own behavior in here, fx: you could force auth again...
-        // res.redirect('/auth/facebook/');
         if (err) {
             log.error(err);
-            res.status(400);
-            res.send({error: "error", message: err.message}).end();
         }
+
+        res.redirect(req.baseUrl + '/failure');
+    });
+
+// вспомогательный url
+router.get('/success', function (req, res) {
+    res.status(200).end();
+});
+
+// вспомогательный url
+router.get('/failure', function (req, res) {
+    res.status(200).end('Something went wrong. Please try again later.');
+});
+
+
+router.post('/signin',
+    passport.authenticate('basic', {session: false}),
+    decryptBody,
+    function (req, res) {
+        if (!req.body.token) {
+            res.status(400).end();
+            return;
+        }
+
+        db.socialTemporaryTokens.find(req.body.token, function (err, data) {
+            if (err) {
+                log.error(err);
+                res.status(500).end();
+                return;
+            }
+
+            // login or register
+            db.users.social.signin(data.social, data.profile.id, data.profile.displayName, data.profile._json, function (err, user) {
+                if (err) {
+                    log.error(err);
+                    res.status(500).end();
+                    return;
+                }
+
+                // create tokens and return user data
+                var accessToken = utils.token();
+                var expirationDate = utils.calculateExpirationDate();
+                db.accessTokens.save(accessToken, expirationDate, user.userId, req.user.clientId, function (err) {
+                    if (err) {
+                        log.error(err);
+                        res.status(500).end();
+                        db.users.delete(user.userId);
+                        return;
+                    }
+
+                    var refreshToken = utils.token();
+                    db.refreshTokens.save(refreshToken, user.userId, req.user.clientId, function (err) {
+                        if (err) {
+                            log.error(err);
+                            res.status(500).end();
+                            db.users.delete(user.userId);
+                            return;
+                        }
+
+                        res.json(cipher.encryptJSON({
+                            userId: user.userId,
+                            accessToken: accessToken,
+                            refreshToken: refreshToken,
+                            expiresIn: expirationDate,
+
+                            email: req.body.email,
+                            username: req.body.username,
+                            userData: req.body.userData
+                        }, req.user.clientSecret));
+                    });
+                });
+            });
+        });
     });
 
 
-// =============================================================================
-// AUTHORIZE (ALREADY LOGGED IN / CONNECTING OTHER SOCIAL ACCOUNT) =============
-// =============================================================================
-
-// send to facebook to do the authentication
-router.get('/connect', passport.authenticate('facebook-connect', {scope: 'email'}));
-
-// handle the callback after facebook has authorized the user
-router.get('/connect/callback',
+router.post('/link',
     passport.authenticate('bearer', {session: false}),
-    passport.authenticate('facebook-connect', {
-        successRedirect: '/?status=success',
-        failureRedirect: '/?status=failure',
-        session: false
-    }));
+    decryptBody,
+    function (req, res) {
+        if (!req.body.token) {
+            res.status(400).end();
+            return;
+        }
+
+        db.socialTemporaryTokens.find(req.body.token, function (err, data) {
+            if (err) {
+                log.error(err);
+                res.status(500).end();
+                return;
+            }
+
+            db.users.social.link(req.user.userId, data.social, data.profile.id, function (err) {
+                if (err) {
+                    log.error(err);
+                    res.status(500).end();
+                    return;
+                }
+
+                res.status(200).end();
+            });
+        });
+    });
 
 
-// =============================================================================
-// UNLINK ACCOUNTS =============================================================
-// =============================================================================
-
+/**
+ * отвязать социальную сеть
+ * @param social
+ */
 router.get('/unlink',
     passport.authenticate('bearer', {session: false}),
     function (req, res) {
-        db.users.setUnlinkFb(req.user.userId, function (err) {
+        db.users.social.unlink(req.user.userId, req.query.social, function (err) {
             if (err) {
                 log.error(err);
                 res.status(500).end();

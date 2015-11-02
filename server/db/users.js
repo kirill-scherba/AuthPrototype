@@ -1,3 +1,5 @@
+var utils = require('./../../../libs/utils');
+
 var users = {};
 
 var emailsMap = new Map();
@@ -73,70 +75,74 @@ module.exports.setPassword = function (id, hashPassword, done) {
 };
 
 
-/**
- * Если аккаунт привязан к fb, то вернуть его, если нет, то создадим пользователя
- */
-module.exports.createIfNotExistsWithFb = function (id, fb, username, data, done) {
-    this.findByFb(fb, function (err, user) {
-        if (err) {
-            done(err);
-            return;
-        }
+module.exports.social = {
+    /**
+     * login or register
+     */
+    signin: function (social, profileId, username, data, done) {
+        this.find(social, profileId, function (err, user) {
+            if (err) {
+                done(err);
+                return;
+            }
 
-        if (user) {
-            done(null, user);
-            return;
-        }
+            if (user) {
+                done(null, user);
+                return;
+            }
 
-        var newUser = {
-            userId: id,
-            fb: fb, //fb id
-            username: username,
-            registerDate: new Date(),
-            data: data
-        };
-        users[id] = newUser;
+            var userId = utils.uid();
+            var newUser = {
+                userId: userId,
+                username: username,
+                registerDate: new Date(),
+                data: data
+            };
+            newUser[social] = profileId;
 
-        done(null, newUser);
-    });
-};
+            users[userId] = newUser;
 
-module.exports.setLinkFb = function (id, fb, done) {
-    this.findByFb(fb, function (err, user) {
-        if (err) {
-            done(err);
-            return;
-        }
+            done(null, newUser);
+        });
+    },
 
-        if (user) {
-            // этот fb аккаунт привязан к другому пользователю
-            done(new Error("EXISTS"));
-            return;
-        }
+    link: function (id, social, profileId, done) {
+        this.find(social, profileId, function (err, user) {
+            if (err) {
+                done(err);
+                return;
+            }
 
-        users[id].fb = fb;
+            if (user) {
+                // этот аккаунт привязан к другому пользователю
+                done(new Error("EXISTS"));
+                return;
+            }
+
+            users[id][social] = profileId;
+
+            if (typeof done === 'function') {
+                done(null);
+            }
+        });
+    },
+
+    unlink: function (id, social, done) {
+        users[id][social] = null;
 
         if (typeof done === 'function') {
             done(null);
         }
-    });
-};
+    },
 
-module.exports.setUnlinkFb = function (id, done) {
-    users[id].fb = null;
-
-    if (typeof done === 'function') {
-        done(null);
-    }
-};
-
-module.exports.findByFb = function (fb, done) {
-    for (var i in users) {
-        if (users.hasOwnProperty(i)) {
-            if (users[i].fb === fb) {
-                return done(null, users[i]);
+    find: function (social, profileId, done) {
+        for (var i in users) {
+            if (users.hasOwnProperty(i)) {
+                if (users[i][social] === profileId) {
+                    return done(null, users[i]);
+                }
             }
         }
+        return done(null, null);
     }
-    return done(null, null);
 };
