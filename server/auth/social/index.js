@@ -99,7 +99,11 @@ router.post('/link',
                     return;
                 }
 
-                res.status(200).end();
+                // data.social, data.profile.id
+                var socialData = {};
+                socialData[data.social] = data.profile.id;
+
+                res.json(cipher.encryptJSON(socialData, req.user.clientSecret));
             });
         });
     });
@@ -109,10 +113,10 @@ router.post('/link',
  * отвязать социальную сеть
  * @param social
  */
-router.get('/unlink',
+router.post('/unlink',
     passport.authenticate('bearer', {session: false}),
     function (req, res) {
-        db.users.social.unlink(req.user.userId, req.query.social, function (err) {
+        db.users.social.unlink(req.user.userId, req.body.social, function (err) {
             if (err) {
                 log.error(err);
                 res.status(500).end();
