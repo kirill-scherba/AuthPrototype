@@ -6,6 +6,7 @@ var utils = require('./../libs/utils');
 var config = require('./../libs/config');
 var log = require('./../libs/log');
 var decryptBody = require('./../libs/decryptBody');
+var helper = require('./helper');
 
 var cipher = utils.Cipher();
 
@@ -65,7 +66,7 @@ router.post('/register',
         }
 
         var userId = utils.uid();
-        db.users.save(userId, req.body.email, req.body.username, req.body.hashPassword, req.body.userData, function (err) {
+        db.users.save(userId, req.body.email, req.body.username, req.body.hashPassword, req.body.userData, function (err, user) {
             if (err && err.message === "EMAIL_EXISTS") {
                 res.status(400).end("EMAIL_EXISTS");
                 return;
@@ -78,8 +79,8 @@ router.post('/register',
             }
 
             var accessToken = utils.token();
-            var expirationDate = utils.calculateExpirationDate();
-            db.accessTokens.save(accessToken, expirationDate, userId, req.user.clientId, function (err) {
+            var expiresIn = utils.calculateExpirationDate();
+            db.accessTokens.save(accessToken, expiresIn, userId, req.user.clientId, function (err) {
                 if (err) {
                     log.error(err);
                     res.status(500).end();
@@ -96,16 +97,9 @@ router.post('/register',
                         return;
                     }
 
-                    res.json(cipher.encryptJSON({
-                        userId: userId,
-                        accessToken: accessToken,
-                        refreshToken: refreshToken,
-                        expiresIn: expirationDate,
-
-                        email: req.body.email,
-                        username: req.body.username,
-                        userData: req.body.userData
-                    }, req.user.clientSecret));
+                    res.json(cipher.encryptJSON(
+                        helper.getUserData(accessToken, refreshToken, expiresIn, user),
+                        req.user.clientSecret));
 
                     process.nextTick(function () {
                         var token = utils.emailToken(req.body.email + req.body.username);
@@ -121,8 +115,8 @@ router.post('/register',
 
 function generateAuthTokens(userId, clientId, done) {
     var accessToken = utils.token();
-    var expirationDate = utils.calculateExpirationDate();
-    db.accessTokens.save(accessToken, expirationDate, userId, clientId, function (err) {
+    var expiresIn = utils.calculateExpirationDate();
+    db.accessTokens.save(accessToken, expiresIn, userId, clientId, function (err) {
         if (err) {
             log.error(err);
             done(err);
@@ -140,7 +134,7 @@ function generateAuthTokens(userId, clientId, done) {
             done(null, {
                 accessToken: accessToken,
                 refreshToken: refreshToken,
-                expiresIn: expirationDate
+                expiresIn: expiresIn
             });
 
             // удаляем для этого клиента старые токены
@@ -194,8 +188,8 @@ router.post('/login',
 
             if (user.twoFactor) {
                 var temporaryToken = utils.token();
-                var temporaryExpirationDate = utils.calculateExpirationDate(config.get('temporaryTokenExpiresIn'));
-                db.temporaryTokens.save(temporaryToken, temporaryExpirationDate, user.userId, req.user.clientId, function (err) {
+                var temporaryExpiresIn = utils.calculateExpirationDate(config.get('temporaryTokenExpiresIn'));
+                db.temporaryTokens.save(temporaryToken, temporaryExpiresIn, user.userId, req.user.clientId, function (err) {
                     if (err) {
                         log.error(err);
                         res.status(500).end();
@@ -204,7 +198,7 @@ router.post('/login',
 
                     res.json(cipher.encryptJSON({
                         temporaryToken: temporaryToken,
-                        expiresIn: temporaryExpirationDate
+                        expiresIn: temporaryExpiresIn
                     }, req.user.clientSecret));
 
                     // удаляем для этого клиента старые токены
@@ -220,16 +214,9 @@ router.post('/login',
                         return;
                     }
 
-                    res.json(cipher.encryptJSON({
-                        userId: user.userId,
-                        accessToken: data.accessToken,
-                        refreshToken: data.refreshToken,
-                        expiresIn: data.expiresIn,
-
-                        email: user.email,
-                        username: user.username,
-                        userData: user.data
-                    }, req.user.clientSecret));
+                    res.json(cipher.encryptJSON(
+                        helper.getUserData(data.accessToken, data.refreshToken, data.expiresIn, user),
+                        req.user.clientSecret));
                 });
             }
         });
@@ -417,15 +404,9 @@ router.post('/login-otp',
                 return;
             }
 
-            res.json(cipher.encryptJSON({
-                userId: req.user.userId,
-                accessToken: data.accessToken,
-                refreshToken: data.refreshToken,
-                expiresIn: data.expiresIn,
-                email: req.user.email,
-                username: req.user.username,
-                userData: req.user.data
-            }, req.user.clientSecret));
+            res.json(cipher.encryptJSON(
+                helper.getUserData(data.accessToken, data.refreshToken, data.expiresIn, req.user),
+                req.user.clientSecret));
         });
     });
 

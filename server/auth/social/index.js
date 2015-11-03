@@ -4,6 +4,7 @@ var db = require('./../../db');
 var log = require('./../../libs/log');
 var decryptBody = require('./../../libs/decryptBody');
 var utils = require('./../../libs/utils');
+var helper = require('./../helper');
 
 var cipher = utils.Cipher();
 
@@ -47,8 +48,8 @@ router.post('/signin',
 
                 // create tokens and return user data
                 var accessToken = utils.token();
-                var expirationDate = utils.calculateExpirationDate();
-                db.accessTokens.save(accessToken, expirationDate, user.userId, req.user.clientId, function (err) {
+                var expiresIn = utils.calculateExpirationDate();
+                db.accessTokens.save(accessToken, expiresIn, user.userId, req.user.clientId, function (err) {
                     if (err) {
                         log.error(err);
                         res.status(500).end();
@@ -65,16 +66,9 @@ router.post('/signin',
                             return;
                         }
 
-                        res.json(cipher.encryptJSON({
-                            userId: user.userId,
-                            accessToken: accessToken,
-                            refreshToken: refreshToken,
-                            expiresIn: expirationDate,
-
-                            email: req.body.email,
-                            username: req.body.username,
-                            userData: req.body.userData
-                        }, req.user.clientSecret));
+                        res.json(cipher.encryptJSON(
+                            helper.getUserData(accessToken, refreshToken, expiresIn, user),
+                            req.user.clientSecret));
                     });
                 });
             });

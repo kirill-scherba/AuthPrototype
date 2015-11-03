@@ -1,4 +1,5 @@
-authData = accessToken; refreshToken; expiresIn
+authData = accessToken, refreshToken, expiresIn
+userData = userId, email, username, userData - данные из объекта пользователя
 hash() - sha512
 encrypt() - шифрование 'aes-256-ctr' по clientSecret
 
@@ -14,8 +15,8 @@ encrypt() - шифрование 'aes-256-ctr' по clientSecret
 [BasicStrategy]
 [decryptBody]
 /register
-	-> {data: encrypt(hash(пароль)/логин + userData (language и что угодно еще))}
-	<- {data: encrypt(authData + userId, email, username, userData)}
+	-> {data: encrypt(hash(пароль)/логин + userDataFromClient (language и что угодно еще))}
+	<- {data: encrypt(authData + userData)}
 
 
 взять из фаркла:
@@ -31,7 +32,7 @@ encrypt() - шифрование 'aes-256-ctr' по clientSecret
 /login
 	-> {data: encrypt(hash(пароль)/логин)}
 		// удаляем для этого клиента старые токены
-	<- {data: encrypt(authData + userId, email, username, userData)}
+	<- {data: encrypt(authData + userData)}
 
 [BasicStrategy]
 /refresh
@@ -66,7 +67,7 @@ encrypt() - шифрование 'aes-256-ctr' по clientSecret
 /login-otp
 	-> 
 		// удаляем temporaryToken
-	<- {data: encrypt(authData + userId, email, username, userData)}
+	<- {data: encrypt(authData + userData)}
 
 /refresh
 
