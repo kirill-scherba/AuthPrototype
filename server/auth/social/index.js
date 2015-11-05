@@ -93,6 +93,11 @@ router.post('/link',
             }
 
             db.users.social.link(req.user.userId, data.social, data.profile.id, function (err) {
+                if (err && err.message === 'EXISTS') {
+                    res.status(400).end('EXISTS'); // этот аккаунт социальной сети уже привязан к другому пользователю
+                    return;
+                }
+
                 if (err) {
                     log.error(err);
                     res.status(500).end();
