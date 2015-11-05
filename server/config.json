@@ -1,11 +1,19 @@
 {
   "port": 3667,
   "facebook": {
-    "clientId": 1,
-    "clientSecret": "secret",
+    "clientId": 636461053160622,
+    "clientSecret": "9821ab4d48212db9ddcc567627544522",
     "callbackURL": "http://localhost:3667/api/auth/facebook/callback"
   },
   "accessTokenExpiresIn": 3600,
   "temporaryTokenExpiresIn": 600,
-  "twoFactorPeriod": 30
+  "twoFactorPeriod": 30,
+  "storage": "memory",
+  "mysql": {
+    "connectionLimit": 10,
+    "host": "10.15.56.124",
+    "user": "authUser",
+    "password": "123",
+    "database": "authPrototype"
+  }
 }

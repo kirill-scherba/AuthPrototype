@@ -1,8 +1,11 @@
-exports.users = require('./users');
-exports.clients = require('./clients');
-exports.accessTokens = require('./accesstokens');
-exports.refreshTokens = require('./refreshtokens');
-exports.temporaryTokens = require('./temporarytokens');
-exports.emailValidation = require('./emailvalidation');
-exports.emailRestore = require('./emailrestore');
-exports.socialTemporaryTokens = require('./socialtemporarytokens');
+var config = require('./../libs/config');
+var storage = config.get('storage');
+
+exports.users = require('./' + storage + '/users');
+exports.clients = require('./' + storage + '/clients');
+exports.accessTokens = require('./' + storage + '/accesstokens');
+exports.refreshTokens = require('./' + storage + '/refreshtokens');
+exports.temporaryTokens = require('./' + storage + '/temporarytokens');
+exports.emailValidation = require('./' + storage + '/emailvalidation');
+exports.emailRestore = require('./' + storage + '/emailrestore');
+exports.socialTemporaryTokens = require('./' + storage + '/socialtemporarytokens');
