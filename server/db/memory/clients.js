@@ -7,7 +7,12 @@ module.exports.find = function (id, done) {
 };
 
 module.exports.save = function (id, secret, clientData, done) {
-    clients[id] = {clientId: id, clientSecret: secret, data: clientData};
+    clients[id] = {
+        clientId: id,
+        clientSecret: secret,
+        registerDate: new Date(),
+        data: clientData
+    };
 
     if (typeof done === 'function') {
         done(null);
