@@ -8,7 +8,7 @@
   "accessTokenExpiresIn": 3600,
   "temporaryTokenExpiresIn": 600,
   "twoFactorPeriod": 30,
-  "storage": "memory",
+  "storage": "mysql",
   "mysql": {
     "connectionLimit": 10,
     "host": "10.15.56.124",

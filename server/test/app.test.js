@@ -6,6 +6,7 @@ var app = require('../app');
 var db = require('../db');
 var streamAuth = require('./../auth/stream');
 var utils = require('../libs/utils');
+var config = require('../libs/config');
 var cipher = utils.Cipher();
 
 
@@ -65,6 +66,30 @@ describe('integration testing signup', function () {
             .expect(401, done);
     }
 
+    function waitDb(callback) {
+        if (config.get('storage') === 'mysql') {
+            setTimeout(callback, 100);
+        } else {
+            callback();
+        }
+    }
+
+    before(function (done) {
+        if (config.get('storage') !== 'mysql') {
+            done();
+            return;
+        }
+
+        db.users.findByEmail(email, function (err, user) {
+            if (err) {
+                done(err);
+                return;
+            }
+
+            db.users.delete(user.userId, done());
+        });
+    });
+
 
     describe("register-client", function () {
         it('should return json body on register-client', function (done) {
@@ -95,15 +120,17 @@ describe('integration testing signup', function () {
         });
 
         it("database should contains clientId and clientSecret", function (done) {
-            db.clients.find(clientId, function (err, client) {
-                if (err) {
-                    return done(err);
-                }
-                client.should.not.be.undefined;
-                client.clientSecret.should.be.equal(clientSecret);
-                client.data.should.be.eql(clientData);
+            waitDb(function () { // в БД иногда не успевает записаться
+                db.clients.find(clientId, function (err, client) {
+                    if (err) {
+                        return done(err);
+                    }
+                    client.should.not.be.undefined;
+                    client.clientSecret.should.be.equal(clientSecret);
+                    client.data.should.be.eql(clientData);
 
-                done();
+                    done();
+                });
             });
         });
     });
@@ -273,7 +300,9 @@ describe('integration testing signup', function () {
 
         // повторно нельзя получить authData по refreshToken
         it("should return 401 when you try get new authData(tokens) by used once refreshToken", function (done) {
-            callRefreshAndFail(userAuthDataLogin.refreshToken, done);
+            waitDb(function () { // в БД иногда не успевает записаться
+                callRefreshAndFail(userAuthDataLogin.refreshToken, done);
+            });
         });
     });
 
@@ -572,7 +601,9 @@ describe('integration testing signup', function () {
         });
 
         it("should return 401 on request by secure path after logout", function (done) {
-            callMeAndFail(userAuthDataDisableTwoFactor.accessToken, done);
+            waitDb(function () { // в БД иногда не успевает записаться
+                callMeAndFail(userAuthDataDisableTwoFactor.accessToken, done);
+            });
         });
 
         it("should return 401 when you try get new authData(tokens) after logout", function (done) {
