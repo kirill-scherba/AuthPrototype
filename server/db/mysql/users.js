@@ -27,7 +27,8 @@ function getDataFromRow(row) {
 }
 
 module.exports.save = function (id, email, username, hashPassword, data, done) {
-    sqlPool.execute(query.save, [id, email, username, hashPassword, new Date(), JSON.stringify(data)], function (err, result) {
+    var registerDate = new Date();
+    sqlPool.execute(query.save, [id, email, username, hashPassword, registerDate, JSON.stringify(data)], function (err, result) {
         if (err && err.code === 'ER_DUP_ENTRY' && err.message.indexOf("'email'") !== -1) {
             done(new Error("EMAIL_EXISTS"));
             return;
@@ -43,7 +44,7 @@ module.exports.save = function (id, email, username, hashPassword, data, done) {
             email: email,
             username: username,
             hashPassword: hashPassword,
-            registerDate: new Date(),
+            registerDate: registerDate,
             data: data
         });
     });
@@ -133,7 +134,8 @@ module.exports.social = {
             }
 
             var userId = utils.uid();
-            sqlPool.execute(query.socialSave, [social, userId, username, new Date(), JSON.stringify(data), profileId], function (err, result) {
+            var registerDate = new Date();
+            sqlPool.execute(query.socialSave, [social, userId, username, registerDate, JSON.stringify(data), profileId], function (err, result) {
                 if (err) {
                     done(err);
                     return;
@@ -142,7 +144,7 @@ module.exports.social = {
                 var newUser = {
                     userId: userId,
                     username: username,
-                    registerDate: new Date(),
+                    registerDate: registerDate,
                     data: data
                 };
                 newUser[social] = profileId;
