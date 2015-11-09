@@ -114,12 +114,25 @@ CREATE TABLE IF NOT EXISTS `users` (
   `registerDate` datetime NOT NULL,
   `data` blob COMMENT 'json',
   `facebook` varchar(50) DEFAULT NULL,
+  `twoFactor` blob COMMENT 'json',
   PRIMARY KEY (`userId`),
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `facebook` (`facebook`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Экспортируемые данные не выделены.
+
+
+-- Дамп структуры для процедура authPrototype.spDeleteUser
+DELIMITER //
+CREATE DEFINER=`root`@`localhost` PROCEDURE `spDeleteUser`(IN `_userId` VARCHAR(50))
+BEGIN
+	delete from accessTokens where userId = _userId;
+	delete from refreshTokens where userId = _userId;
+	delete from temporaryTokens where userId = _userId;
+	delete from users where userId = _userId;
+END//
+DELIMITER ;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
 /*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1, @OLD_FOREIGN_KEY_CHECKS) */;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
