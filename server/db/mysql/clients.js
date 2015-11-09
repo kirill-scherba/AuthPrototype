@@ -2,7 +2,7 @@ var sqlPool = require('./index').pool;
 
 var query = {};
 query.save = 'insert into clients(clientId, clientSecret, registerDate, data) values (?,?,?,?);';
-query.find = 'select clientId, clientSecret, registerDate, data clients users where clientId = ?';
+query.find = 'select clientId, clientSecret, registerDate, data from clients where clientId = ?';
 
 
 module.exports.find = function (id, done) {
