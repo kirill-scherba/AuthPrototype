@@ -169,7 +169,7 @@ module.exports.social = {
 
             sqlPool.execute(query.socialFind, [social, profileId, id], function (err) {
                 if (typeof done === 'function') {
-                    done(null);
+                    done(err);
                 }
             });
         });
