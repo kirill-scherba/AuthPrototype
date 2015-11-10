@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS `accessTokens` (
   `token` varchar(128) NOT NULL,
   `userId` varchar(50) NOT NULL,
   `clientId` varchar(50) NOT NULL,
-  `expirationDate` datetime NOT NULL,
+  `expirationDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`token`),
   KEY `FK_accessTokens_users` (`userId`),
   KEY `FK_accessTokens_clients` (`clientId`),
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS `clients` (
 CREATE TABLE IF NOT EXISTS `emailRestore` (
   `email` varchar(50) NOT NULL,
   `token` varchar(128) NOT NULL,
-  `dtCreate` datetime NOT NULL,
+  `dtCreate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS `emailRestore` (
 CREATE TABLE IF NOT EXISTS `emailValidation` (
   `email` varchar(50) NOT NULL,
   `token` varchar(128) NOT NULL,
-  `dtCreate` datetime NOT NULL,
+  `dtCreate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS `refreshTokens` (
 CREATE TABLE IF NOT EXISTS `socialTemporaryTokens` (
   `token` varchar(128) NOT NULL,
   `social` varchar(50) NOT NULL,
-  `expirationDate` datetime NOT NULL,
+  `expirationDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `profile` blob COMMENT 'json',
   `accessToken` varchar(128) NOT NULL,
   `refreshToken` varchar(128) NOT NULL,
@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS `temporaryTokens` (
   `token` varchar(128) NOT NULL,
   `userId` varchar(50) NOT NULL,
   `clientId` varchar(50) NOT NULL,
-  `expirationDate` datetime NOT NULL,
+  `expirationDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`token`),
   KEY `FK_temporaryTokens_users` (`userId`),
   KEY `FK_temporaryTokens_clients` (`clientId`),

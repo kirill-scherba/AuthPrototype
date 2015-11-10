@@ -81,12 +81,17 @@ describe('integration testing signup', function () {
         }
 
         db.users.findByEmail(email, function (err, user) {
+            if (err && err.message === 'EMAIL_NOT_FOUND') {
+                done();
+                return;
+            }
+
             if (err) {
                 done(err);
                 return;
             }
 
-            db.users.delete(user.userId, done());
+            db.users.delete(user.userId, done);
         });
     });
 
