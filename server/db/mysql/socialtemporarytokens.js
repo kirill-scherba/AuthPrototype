@@ -30,7 +30,7 @@ module.exports.find = function (key, done) {
 };
 
 module.exports.save = function (token, social, expirationDate, profile, accessToken, refreshToken, done) {
-    sqlPool.execute(query.save, [token, social, expirationDate, JSON.stringify(profile), accessToken, refreshToken], function (err) {
+    sqlPool.execute(query.save, [token, social, expirationDate, JSON.stringify(profile), accessToken, refreshToken || null], function (err) {
         done(err);
     });
 };

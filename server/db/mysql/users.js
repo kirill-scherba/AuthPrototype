@@ -135,21 +135,28 @@ module.exports.social = {
 
             var userId = utils.uid();
             var registerDate = new Date();
-            sqlPool.execute(query.socialSave, [social, userId, username, registerDate, JSON.stringify(data), profileId], function (err, result) {
+            sqlPool.getConnection(function (err, connection) {
                 if (err) {
                     done(err);
                     return;
                 }
 
-                var newUser = {
-                    userId: userId,
-                    username: username,
-                    registerDate: registerDate,
-                    data: data
-                };
-                newUser[social] = profileId;
+                connection.query(query.socialSave, [social, userId, username, registerDate, JSON.stringify(data), profileId], function (err, result) {
+                    if (err) {
+                        done(err);
+                        return;
+                    }
 
-                done(null, newUser);
+                    var newUser = {
+                        userId: userId,
+                        username: username,
+                        registerDate: registerDate,
+                        data: data
+                    };
+                    newUser[social] = profileId;
+
+                    done(null, newUser);
+                });
             });
         });
     },
@@ -167,7 +174,29 @@ module.exports.social = {
                 return;
             }
 
-            sqlPool.execute(query.socialFind, [social, profileId, id], function (err) {
+            sqlPool.getConnection(function (err, connection) {
+                if (err) {
+                    done(err);
+                    return;
+                }
+
+                connection.query(query.socialLink, [social, profileId, id], function (err) {
+                    if (typeof done === 'function') {
+                        done(err);
+                    }
+                });
+            });
+        });
+    },
+
+    unlink: function (id, social, done) {
+        sqlPool.getConnection(function (err, connection) {
+            if (err) {
+                done(err);
+                return;
+            }
+
+            connection.query(query.socialUnlink, [social, id], function (err) {
                 if (typeof done === 'function') {
                     done(err);
                 }
@@ -175,27 +204,26 @@ module.exports.social = {
         });
     },
 
-    unlink: function (id, social, done) {
-        sqlPool.execute(query.socialUnlink, [social, id], function (err) {
-            if (typeof done === 'function') {
-                done(err);
-            }
-        });
-    },
-
     find: function (social, profileId, done) {
-        sqlPool.execute(query.socialUnlink, [social, profileId], function (err, rows) {
+        sqlPool.getConnection(function (err, connection) {
             if (err) {
                 done(err);
                 return;
             }
 
-            if (rows.length === 0) {
-                done(null, null);
-                return;
-            }
+            connection.query(query.socialFind, [social, profileId], function (err, rows) {
+                if (err) {
+                    done(err);
+                    return;
+                }
 
-            done(null, getDataFromRow(rows[0]));
+                if (rows.length === 0) {
+                    done(null, null);
+                    return;
+                }
+                console.log(rows[0]);
+                done(null, getDataFromRow(rows[0]));
+            });
         });
     }
 };

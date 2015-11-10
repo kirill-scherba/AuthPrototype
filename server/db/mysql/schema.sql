@@ -81,8 +81,8 @@ CREATE TABLE IF NOT EXISTS `socialTemporaryTokens` (
   `social` varchar(50) NOT NULL,
   `expirationDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `profile` blob COMMENT 'json',
-  `accessToken` varchar(128) NOT NULL,
-  `refreshToken` varchar(128) NOT NULL,
+  `accessToken` varchar(256) NOT NULL,
+  `refreshToken` varchar(256) DEFAULT NULL,
   PRIMARY KEY (`token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
