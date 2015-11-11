@@ -15,6 +15,12 @@ query.socialLink = 'update users set ?? = ? where userId = ?;';
 query.socialSave = 'insert into users(userId, username, registerDate, data, ??) values (?,?,?,?,?);';
 
 function getDataFromRow(row) {
+    var twoFactor = null;
+    // при использовании connection.query вместо null приходит <Buffer > для типа BLOB если в бд NULL
+    if (row.twoFactor instanceof Buffer && row.twoFactor.length > 0) {
+        twoFactor = JSON.parse(row.twoFactor);
+    }
+
     return {
         userId: row.userId,
         email: row.email,
@@ -22,7 +28,8 @@ function getDataFromRow(row) {
         hashPassword: row.hashPassword,
         registerDate: row.registerDate,
         data: JSON.parse(row.data),
-        twoFactor: JSON.parse(row.twoFactor)
+        facebook: row.facebook,
+        twoFactor: twoFactor
     };
 }
 
@@ -221,7 +228,7 @@ module.exports.social = {
                     done(null, null);
                     return;
                 }
-                console.log(rows[0]);
+
                 done(null, getDataFromRow(rows[0]));
             });
         });
