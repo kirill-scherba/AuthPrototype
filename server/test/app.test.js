@@ -615,4 +615,59 @@ describe('integration testing signup', function () {
             callRefreshAndFail(userAuthDataRefresh.refreshToken, done);
         });
     });
+
+
+    describe("deactivate", function () {
+        var userAuthData;
+        before("should login without two-factor", function (done) {
+            request(app)
+                .post('/api/auth/login')
+                .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
+                .send(cipher.encryptJSON({
+                    email: email,
+                    hashPassword: utils.getHash(passwordNew)
+                }, clientSecret))
+                .expect(200)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    res.body.should.be.json;
+
+                    var data = cipher.decryptJSON(res.body.data, clientSecret);
+
+                    data.should.be.json;
+                    data.accessToken.should.not.be.empty;
+                    data.refreshToken.should.not.be.empty;
+                    data.expiresIn.should.not.be.empty;
+                    data.userId.should.not.be.empty;
+                    data.email.should.not.be.empty;
+                    data.username.should.not.be.empty;
+                    data.userData.should.not.be.empty;
+
+                    userAuthData = data;
+
+                    done();
+                });
+        });
+
+        it("should deactivate", function (done) {
+            request(app)
+                .post('/api/auth/deactivate')
+                .set('Authorization', 'Bearer ' + userAuthData.accessToken)
+                .expect(200, done);
+        });
+
+        it("should not login", function (done) {
+            request(app)
+                .post('/api/auth/login')
+                .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
+                .send(cipher.encryptJSON({
+                    email: email,
+                    hashPassword: utils.getHash(passwordNew)
+                }, clientSecret))
+                .expect(400, done);
+        })
+    });
 });
