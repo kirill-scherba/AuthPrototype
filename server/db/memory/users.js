@@ -26,7 +26,13 @@ module.exports.save = function (id, email, username, hashPassword, data, done) {
 
 module.exports.find = function (id, done) {
     var user = users[id];
-    return done(null, user);
+
+    if (user.deactivate) {
+        done(null, null);
+        return;
+    }
+
+    done(null, user);
 };
 
 module.exports.findByEmail = function (email, done) {
@@ -37,7 +43,13 @@ module.exports.findByEmail = function (email, done) {
     }
 
     var user = users[id];
-    return done(null, user);
+
+    if (user.deactivate) {
+        done(null, null);
+        return;
+    }
+
+    done(null, user);
 };
 
 module.exports.delete = function (id, done) {
@@ -72,6 +84,11 @@ module.exports.setPassword = function (id, hashPassword, done) {
     if (typeof done === 'function') {
         done(null);
     }
+};
+
+module.exports.deactivate = function (id, done) {
+    users[id].deactivate = new Date();
+    done(null);
 };
 
 
@@ -138,11 +155,13 @@ module.exports.social = {
     find: function (social, profileId, done) {
         for (var i in users) {
             if (users.hasOwnProperty(i)) {
-                if (users[i][social] === profileId) {
-                    return done(null, users[i]);
+                if (!users[i].deactivate && users[i][social] === profileId) {
+                    done(null, users[i]);
+                    return;
                 }
             }
         }
-        return done(null, null);
+
+        done(null, null);
     }
 };

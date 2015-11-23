@@ -499,6 +499,25 @@ router.post('/resend-email',
         });
     });
 
+
+router.post('/deactivate',
+    passport.authenticate('bearer', {session: false}),
+    function (req, res) {
+        db.accessTokens.deleteByClientId(req.user.clientId);
+        db.refreshTokens.deleteByClientId(req.user.clientId);
+
+        db.users.deactivate(req.user.userId, function (err) {
+            if (err) {
+                log.error(err);
+                res.status(500).end();
+                return;
+            }
+
+            res.status(200).end();
+        });
+    });
+
+
 /**
  * TODO вспомогательные урлы
  *

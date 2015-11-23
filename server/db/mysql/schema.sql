@@ -115,9 +115,11 @@ CREATE TABLE IF NOT EXISTS `users` (
   `data` blob COMMENT 'json',
   `facebook` varchar(50) DEFAULT NULL,
   `twoFactor` blob COMMENT 'json',
+  `deactivated` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`userId`),
   UNIQUE KEY `email` (`email`),
-  UNIQUE KEY `facebook` (`facebook`)
+  UNIQUE KEY `facebook` (`facebook`),
+  KEY `deactivated` (`deactivated`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Экспортируемые данные не выделены.

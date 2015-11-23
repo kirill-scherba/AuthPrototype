@@ -3,16 +3,17 @@ var sqlPool = require('./index').pool;
 
 var query = {};
 query.save = 'insert into users(userId, email, username, hashPassword, registerDate, data) values (?,?,?,?,?,?);';
-query.find = 'select userId, email, username, hashPassword, registerDate, data, facebook, twoFactor from users where userId = ?';
-query.findByEmail = 'select userId, email, username, hashPassword, registerDate, data, facebook, twoFactor from users where email = ?';
+query.find = 'select userId, email, username, hashPassword, registerDate, data, facebook, twoFactor from users where deactivated is null and userId = ?';
+query.findByEmail = 'select userId, email, username, hashPassword, registerDate, data, facebook, twoFactor from users where deactivated is null and email = ?';
 query.delete = 'CALL spDeleteUser(?);';
 query.setTwoFactor = 'update users set twoFactor = ? where userId = ?;';
 query.disableTwoFactor = 'update users set twoFactor = null where userId = ?;';
 query.setPassword = 'update users set hashPassword = ? where userId = ?;';
 query.socialUnlink = 'update users set ?? = null where userId = ?;';
-query.socialFind = 'select userId, email, username, hashPassword, registerDate, data, facebook, twoFactor from users where ?? = ?';
+query.socialFind = 'select userId, email, username, hashPassword, registerDate, data, facebook, twoFactor from users where deactivated is null and ?? = ?';
 query.socialLink = 'update users set ?? = ? where userId = ?;';
 query.socialSave = 'insert into users(userId, username, registerDate, data, ??) values (?,?,?,?,?);';
+query.deactivate = 'update users set deactivated = NOW() where userId = ?;';
 
 function getDataFromRow(row) {
     var twoFactor = null;
@@ -121,6 +122,12 @@ module.exports.setPassword = function (id, hashPassword, done) {
         if (typeof done === 'function') {
             done(err);
         }
+    });
+};
+
+module.exports.deactivate = function (id, done) {
+    sqlPool.execute(query.deactivate, [id], function (err) {
+        done(err);
     });
 };
 
