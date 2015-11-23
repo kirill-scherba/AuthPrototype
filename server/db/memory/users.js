@@ -27,7 +27,7 @@ module.exports.save = function (id, email, username, hashPassword, data, done) {
 module.exports.find = function (id, done) {
     var user = users[id];
 
-    if (user.deactivate) {
+    if (user.deactivated) {
         done(null, null);
         return;
     }
@@ -44,7 +44,7 @@ module.exports.findByEmail = function (email, done) {
 
     var user = users[id];
 
-    if (user.deactivate) {
+    if (user.deactivated) {
         done(null, null);
         return;
     }
@@ -87,7 +87,7 @@ module.exports.setPassword = function (id, hashPassword, done) {
 };
 
 module.exports.deactivate = function (id, done) {
-    users[id].deactivate = new Date();
+    users[id].deactivated = new Date();
     done(null);
 };
 
@@ -155,7 +155,7 @@ module.exports.social = {
     find: function (social, profileId, done) {
         for (var i in users) {
             if (users.hasOwnProperty(i)) {
-                if (!users[i].deactivate && users[i][social] === profileId) {
+                if (!users[i].deactivated && users[i][social] === profileId) {
                     done(null, users[i]);
                     return;
                 }
