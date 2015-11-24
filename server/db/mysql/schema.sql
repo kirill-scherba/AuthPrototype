@@ -10,6 +10,11 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 
+-- Дамп структуры базы данных authPrototype
+CREATE DATABASE IF NOT EXISTS `authPrototype` /*!40100 DEFAULT CHARACTER SET utf8 */;
+USE `authPrototype`;
+
+
 -- Дамп структуры для таблица authPrototype.accessTokens
 CREATE TABLE IF NOT EXISTS `accessTokens` (
   `token` varchar(128) NOT NULL,
