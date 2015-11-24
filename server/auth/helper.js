@@ -11,6 +11,7 @@ module.exports.getUserData = function (accessToken, refreshToken, expiresIn, use
         userData: user.data,
         hasPassword: Boolean(user.hashPassword), // есть ли пароль, пароля может не быть если пользователь вошел через социальную сеть. показывает отображать ли блок смены пароля в профиле
 
+        groups: user.groups,
         facebook: user.facebook
     };
 };

@@ -4,6 +4,7 @@ var should = require('should');
 var otp = require('otplib/lib/authenticator');
 var app = require('../app');
 var db = require('../db');
+var sqlPool = require('../db/mysql').pool;
 var streamAuth = require('./../auth/stream');
 var utils = require('../libs/utils');
 var config = require('../libs/config');
@@ -80,18 +81,18 @@ describe('integration testing signup', function () {
             return;
         }
 
-        db.users.findByEmail(email, function (err, user) {
-            if (err && err.message === 'EMAIL_NOT_FOUND') {
-                done();
-                return;
-            }
-
+        sqlPool.execute('select userId from users where email = ?', [email], function (err, rows) {
             if (err) {
                 done(err);
                 return;
             }
 
-            db.users.delete(user.userId, done);
+            if (rows.length === 0) {
+                done();
+                return;
+            }
+
+            db.users.delete(rows[0].userId, done);
         });
     });
 

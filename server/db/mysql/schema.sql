@@ -60,6 +60,16 @@ CREATE TABLE IF NOT EXISTS `emailValidation` (
 -- Экспортируемые данные не выделены.
 
 
+-- Дамп структуры для таблица authPrototype.groups
+CREATE TABLE IF NOT EXISTS `groups` (
+  `groupId` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`groupId`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- Экспортируемые данные не выделены.
+
+
 -- Дамп структуры для таблица authPrototype.refreshTokens
 CREATE TABLE IF NOT EXISTS `refreshTokens` (
   `token` varchar(128) NOT NULL,
@@ -100,6 +110,21 @@ CREATE TABLE IF NOT EXISTS `temporaryTokens` (
   KEY `FK_temporaryTokens_clients` (`clientId`),
   CONSTRAINT `FK_temporaryTokens_clients` FOREIGN KEY (`clientId`) REFERENCES `clients` (`clientId`),
   CONSTRAINT `FK_temporaryTokens_users` FOREIGN KEY (`userId`) REFERENCES `users` (`userId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Экспортируемые данные не выделены.
+
+
+-- Дамп структуры для таблица authPrototype.userGroup
+CREATE TABLE IF NOT EXISTS `userGroup` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `userId` varchar(50) NOT NULL,
+  `groupId` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `FK_userGroup_users` (`userId`),
+  KEY `FK_userGroup_groups` (`groupId`),
+  CONSTRAINT `FK_userGroup_groups` FOREIGN KEY (`groupId`) REFERENCES `groups` (`groupId`),
+  CONSTRAINT `FK_userGroup_users` FOREIGN KEY (`userId`) REFERENCES `users` (`userId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Экспортируемые данные не выделены.

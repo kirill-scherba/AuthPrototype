@@ -14,13 +14,18 @@ query.socialFind = 'select userId, email, username, hashPassword, registerDate, 
 query.socialLink = 'update users set ?? = ? where userId = ?;';
 query.socialSave = 'insert into users(userId, username, registerDate, data, ??) values (?,?,?,?,?);';
 query.deactivate = 'update users set deactivated = NOW() where userId = ?;';
+query.getGroups = 'select g.name from groups g inner join userGroup ug on g.groupId = ug.groupId where ug.userId = ?';
 
-function getDataFromRow(row) {
+function getDataFromRow(row, groups) {
     var twoFactor = null;
     // при использовании connection.query вместо null приходит <Buffer > для типа BLOB если в бд NULL
     if (row.twoFactor instanceof Buffer && row.twoFactor.length > 0) {
         twoFactor = JSON.parse(row.twoFactor);
     }
+
+    groups = groups.map(function (group) {
+        return group.name;
+    });
 
     return {
         userId: row.userId,
@@ -30,7 +35,8 @@ function getDataFromRow(row) {
         registerDate: row.registerDate,
         data: JSON.parse(row.data),
         facebook: row.facebook,
-        twoFactor: twoFactor
+        twoFactor: twoFactor,
+        groups: groups
     };
 }
 
@@ -59,34 +65,68 @@ module.exports.save = function (id, email, username, hashPassword, data, done) {
 };
 
 module.exports.find = function (id, done) {
-    sqlPool.execute(query.find, [id], function (err, rows) {
+    sqlPool.getConnection(function (err, connection) {
         if (err) {
             done(err);
             return;
         }
 
-        if (rows.length === 0) {
-            done(null, null);
-            return;
-        }
+        connection.query(query.find, [id], function (err, rows) {
+            if (err) {
+                done(err);
+                connection.release();
+                return;
+            }
 
-        done(null, getDataFromRow(rows[0]));
+            if (rows.length === 0) {
+                done(null, null);
+                connection.release();
+                return;
+            }
+
+            connection.query(query.getGroups, [rows[0].userId], function (err, groups) {
+                connection.release();
+                if (err) {
+                    done(err);
+                    return;
+                }
+
+                done(null, getDataFromRow(rows[0], groups));
+            });
+        });
     });
 };
 
 module.exports.findByEmail = function (email, done) {
-    sqlPool.execute(query.findByEmail, [email], function (err, rows) {
+    sqlPool.getConnection(function (err, connection) {
         if (err) {
             done(err);
             return;
         }
 
-        if (rows.length === 0) {
-            done(new Error("EMAIL_NOT_FOUND"));
-            return;
-        }
+        connection.query(query.findByEmail, [email], function (err, rows) {
+            if (err) {
+                done(err);
+                connection.release();
+                return;
+            }
 
-        done(null, getDataFromRow(rows[0]));
+            if (rows.length === 0) {
+                done(new Error("EMAIL_NOT_FOUND"));
+                connection.release();
+                return;
+            }
+
+            connection.query(query.getGroups, [rows[0].userId], function (err, groups) {
+                connection.release();
+                if (err) {
+                    done(err);
+                    return;
+                }
+
+                done(null, getDataFromRow(rows[0], groups));
+            });
+        });
     });
 };
 
@@ -156,6 +196,7 @@ module.exports.social = {
                 }
 
                 connection.query(query.socialSave, [social, userId, username, registerDate, JSON.stringify(data), profileId], function (err, result) {
+                    connection.release();
                     if (err) {
                         done(err);
                         return;
@@ -195,6 +236,7 @@ module.exports.social = {
                 }
 
                 connection.query(query.socialLink, [social, profileId, id], function (err) {
+                    connection.release();
                     if (typeof done === 'function') {
                         done(err);
                     }
@@ -211,6 +253,7 @@ module.exports.social = {
             }
 
             connection.query(query.socialUnlink, [social, id], function (err) {
+                connection.release();
                 if (typeof done === 'function') {
                     done(err);
                 }
@@ -236,7 +279,15 @@ module.exports.social = {
                     return;
                 }
 
-                done(null, getDataFromRow(rows[0]));
+                connection.query(query.getGroups, [rows[0].userId], function (err, groups) {
+                    connection.release();
+                    if (err) {
+                        done(err);
+                        return;
+                    }
+
+                    done(null, getDataFromRow(rows[0], groups));
+                });
             });
         });
     }
