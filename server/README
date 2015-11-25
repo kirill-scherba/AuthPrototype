@@ -1,7 +1,7 @@
 authData = accessToken, refreshToken, expiresIn
 userData = userId, email, username, hasPassword, groups, facebook, userData - данные из объекта пользователя
 hash() - sha512
-encrypt() - шифрование 'aes-256-ctr' по clientSecret
+encrypt() - шифрование 'aes-256-ctr' по clientKey
 
 
 ===============================================
@@ -9,7 +9,7 @@ encrypt() - шифрование 'aes-256-ctr' по clientSecret
 
 /register-client - регистрировать
 	-> инфа по девайсу
-	<-clientId, clientSecret
+	<-clientId, clientSecret, clientKey
 
 
 [BasicStrategy]

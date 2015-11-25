@@ -14,6 +14,7 @@ var cipher = utils.Cipher();
 describe('integration testing signup', function () {
     var clientId;
     var clientSecret;
+    var clientKey;
     var clientData = {a: 1};
 
     var email = "bob@gmail.com";
@@ -111,9 +112,11 @@ describe('integration testing signup', function () {
                     res.body.should.be.json;
                     res.body.clientId.should.not.be.empty;
                     res.body.clientSecret.should.not.be.empty;
+                    res.body.clientKey.should.not.be.empty;
 
                     clientId = res.body.clientId;
                     clientSecret = res.body.clientSecret;
+                    clientKey = res.body.clientKey;
 
                     done();
                 });
@@ -133,6 +136,7 @@ describe('integration testing signup', function () {
                     }
                     client.should.not.be.undefined;
                     client.clientSecret.should.be.equal(clientSecret);
+                    client.clientKey.should.be.equal(clientKey);
                     client.data.should.be.eql(clientData);
 
                     done();
@@ -152,7 +156,7 @@ describe('integration testing signup', function () {
                     hashPassword: utils.getHash(password),
                     username: username,
                     userData: {language: language}
-                }, clientSecret))
+                }, clientKey))
                 .expect(200)
                 .end(function (err, res) {
                     if (err) {
@@ -161,7 +165,7 @@ describe('integration testing signup', function () {
 
                     res.body.should.be.json;
 
-                    var data = cipher.decryptJSON(res.body.data, clientSecret);
+                    var data = cipher.decryptJSON(res.body.data, clientKey);
 
                     data.should.be.json;
                     data.accessToken.should.not.be.empty;
@@ -187,7 +191,7 @@ describe('integration testing signup', function () {
                     hashPassword: utils.getHash(password),
                     username: username,
                     userData: {language: language}
-                }, clientSecret))
+                }, clientKey))
                 .expect(400, "EMAIL_EXISTS", done);
         });
 
@@ -200,7 +204,7 @@ describe('integration testing signup', function () {
                     hashPassword: utils.getHash(password),
                     username: username,
                     userData: {language: language}
-                }, clientSecret))
+                }, clientKey))
                 .expect(400, "INVALID_EMAIL", done);
         });
     });
@@ -214,7 +218,7 @@ describe('integration testing signup', function () {
                 .send(cipher.encryptJSON({
                     email: email,
                     hashPassword: utils.getHash(password)
-                }, clientSecret))
+                }, clientKey))
                 .expect(200)
                 .end(function (err, res) {
                     if (err) {
@@ -223,7 +227,7 @@ describe('integration testing signup', function () {
 
                     res.body.should.be.json;
 
-                    var data = cipher.decryptJSON(res.body.data, clientSecret);
+                    var data = cipher.decryptJSON(res.body.data, clientKey);
 
                     data.should.be.json;
                     data.accessToken.should.not.be.empty;
@@ -247,7 +251,7 @@ describe('integration testing signup', function () {
                 .send(cipher.encryptJSON({
                     email: "aa@aa.aa",
                     hashPassword: utils.getHash(password)
-                }, clientSecret))
+                }, clientKey))
                 .expect(400, "WRONG_EMAIL_OR_PASSWORD", done);
 
         });
@@ -259,7 +263,7 @@ describe('integration testing signup', function () {
                 .send(cipher.encryptJSON({
                     email: email,
                     hashPassword: utils.getHash("dasddsfdsfsdf")
-                }, clientSecret))
+                }, clientKey))
                 .expect(400, "WRONG_EMAIL_OR_PASSWORD", done);
         });
 
@@ -269,7 +273,7 @@ describe('integration testing signup', function () {
                 .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
                 .send(cipher.encryptJSON({
                     email: email
-                }, clientSecret))
+                }, clientKey))
                 .expect(400, "HASHPASSWORD_IS_EMPTY", done);
         });
     });
@@ -291,7 +295,7 @@ describe('integration testing signup', function () {
 
                     res.body.should.be.json;
 
-                    var data = cipher.decryptJSON(res.body.data, clientSecret);
+                    var data = cipher.decryptJSON(res.body.data, clientKey);
 
                     data.should.be.json;
                     data.accessToken.should.not.be.empty;
@@ -388,7 +392,7 @@ describe('integration testing signup', function () {
                 .send(cipher.encryptJSON({
                     current: utils.getHash(password),
                     new: utils.getHash(passwordNew)
-                }, clientSecret))
+                }, clientKey))
                 .expect(200, done);
         });
 
@@ -399,7 +403,7 @@ describe('integration testing signup', function () {
                 .send(cipher.encryptJSON({
                     current: utils.getHash(password),
                     new: utils.getHash(passwordNew)
-                }, clientSecret))
+                }, clientKey))
                 .expect(400, done);
         });
 
@@ -417,7 +421,7 @@ describe('integration testing signup', function () {
                 .send(cipher.encryptJSON({
                     email: email,
                     hashPassword: utils.getHash(passwordNew)
-                }, clientSecret))
+                }, clientKey))
                 .expect(200)
                 .end(function (err, res) {
                     if (err) {
@@ -426,7 +430,7 @@ describe('integration testing signup', function () {
 
                     res.body.should.be.json;
 
-                    var data = cipher.decryptJSON(res.body.data, clientSecret);
+                    var data = cipher.decryptJSON(res.body.data, clientKey);
 
                     data.should.be.json;
                     data.accessToken.should.not.be.empty;
@@ -461,7 +465,7 @@ describe('integration testing signup', function () {
 
                     res.body.should.be.json;
 
-                    var data = cipher.decryptJSON(res.body.data, clientSecret);
+                    var data = cipher.decryptJSON(res.body.data, clientKey);
 
                     data.should.be.json;
                     data.twoFactor.should.be.json;
@@ -482,7 +486,7 @@ describe('integration testing signup', function () {
                 .send(cipher.encryptJSON({
                     email: email,
                     hashPassword: utils.getHash(passwordNew)
-                }, clientSecret))
+                }, clientKey))
                 .expect(200)
                 .end(function (err, res) {
                     if (err) {
@@ -491,7 +495,7 @@ describe('integration testing signup', function () {
 
                     res.body.should.be.json;
 
-                    var data = cipher.decryptJSON(res.body.data, clientSecret);
+                    var data = cipher.decryptJSON(res.body.data, clientKey);
 
                     data.should.be.json;
                     data.temporaryToken.should.not.be.empty;
@@ -519,7 +523,7 @@ describe('integration testing signup', function () {
 
                     res.body.should.be.json;
 
-                    var data = cipher.decryptJSON(res.body.data, clientSecret);
+                    var data = cipher.decryptJSON(res.body.data, clientKey);
 
                     data.should.be.json;
                     data.accessToken.should.not.be.empty;
@@ -549,7 +553,7 @@ describe('integration testing signup', function () {
                 .set('Authorization', 'Bearer ' + userAuthDataTwoFactor.accessToken)
                 .send(cipher.encryptJSON({
                     hashPassword: utils.getHash('test')
-                }, clientSecret))
+                }, clientKey))
                 .expect(400, done);
         });
 
@@ -559,7 +563,7 @@ describe('integration testing signup', function () {
                 .set('Authorization', 'Bearer ' + userAuthDataTwoFactor.accessToken)
                 .send(cipher.encryptJSON({
                     hashPassword: utils.getHash(passwordNew)
-                }, clientSecret))
+                }, clientKey))
                 .expect(200, done);
         });
 
@@ -570,7 +574,7 @@ describe('integration testing signup', function () {
                 .send(cipher.encryptJSON({
                     email: email,
                     hashPassword: utils.getHash(passwordNew)
-                }, clientSecret))
+                }, clientKey))
                 .expect(200)
                 .end(function (err, res) {
                     if (err) {
@@ -579,7 +583,7 @@ describe('integration testing signup', function () {
 
                     res.body.should.be.json;
 
-                    var data = cipher.decryptJSON(res.body.data, clientSecret);
+                    var data = cipher.decryptJSON(res.body.data, clientKey);
 
                     data.should.be.json;
                     data.accessToken.should.not.be.empty;
@@ -627,7 +631,7 @@ describe('integration testing signup', function () {
                 .send(cipher.encryptJSON({
                     email: email,
                     hashPassword: utils.getHash(passwordNew)
-                }, clientSecret))
+                }, clientKey))
                 .expect(200)
                 .end(function (err, res) {
                     if (err) {
@@ -636,7 +640,7 @@ describe('integration testing signup', function () {
 
                     res.body.should.be.json;
 
-                    var data = cipher.decryptJSON(res.body.data, clientSecret);
+                    var data = cipher.decryptJSON(res.body.data, clientKey);
 
                     data.should.be.json;
                     data.accessToken.should.not.be.empty;
@@ -667,7 +671,7 @@ describe('integration testing signup', function () {
                 .send(cipher.encryptJSON({
                     email: email,
                     hashPassword: utils.getHash(passwordNew)
-                }, clientSecret))
+                }, clientKey))
                 .expect(400, done);
         })
     });

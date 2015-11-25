@@ -2,7 +2,7 @@ var express = require('express');
 var passport = require('passport');
 var db = require('./../../db');
 var log = require('./../../libs/log');
-var decryptBody = require('./../../libs/decryptBody');
+var decryptBody = require('./../../middleware/decryptBody');
 var utils = require('./../../libs/utils');
 var helper = require('./../helper');
 
@@ -68,7 +68,7 @@ router.post('/signin',
 
                         res.json(cipher.encryptJSON(
                             helper.getUserData(accessToken, refreshToken, expiresIn, user),
-                            req.user.clientSecret));
+                            req.user.clientKey));
                     });
                 });
             });
@@ -108,7 +108,7 @@ router.post('/link',
                 var socialData = {};
                 socialData[data.social] = data.profile.id;
 
-                res.json(cipher.encryptJSON(socialData, req.user.clientSecret));
+                res.json(cipher.encryptJSON(socialData, req.user.clientKey));
             });
         });
     });

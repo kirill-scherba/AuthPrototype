@@ -1,8 +1,8 @@
 var sqlPool = require('./index').pool;
 
 var query = {};
-query.save = 'insert into clients(clientId, clientSecret, registerDate, data) values (?,?,?,?);';
-query.find = 'select clientId, clientSecret, registerDate, data from clients where clientId = ?';
+query.save = 'insert into clients(clientId, clientSecret, clientKey, registerDate, data) values (?,?,?,?,?);';
+query.find = 'select clientId, clientSecret, clientKey, registerDate, data from clients where clientId = ?';
 
 
 module.exports.find = function (id, done) {
@@ -20,15 +20,16 @@ module.exports.find = function (id, done) {
         done(null, {
             clientId: rows[0].clientId,
             clientSecret: rows[0].clientSecret,
+            clientKey: rows[0].clientKey,
             registerDate: rows[0].registerDate,
             data: JSON.parse(rows[0].data)
         });
     });
 };
 
-module.exports.save = function (id, secret, data, done) {
+module.exports.save = function (id, secret, key, data, done) {
     var registerDate = new Date();
-    sqlPool.execute(query.save, [id, secret, registerDate, JSON.stringify(data)], function (err, result) {
+    sqlPool.execute(query.save, [id, secret, key, registerDate, JSON.stringify(data)], function (err, result) {
         if (typeof done !== 'function') {
             return;
         }
@@ -41,6 +42,7 @@ module.exports.save = function (id, secret, data, done) {
         done(null, {
             clientId: id,
             clientSecret: secret,
+            clientKey: key,
             registerDate: registerDate,
             data: data
         });

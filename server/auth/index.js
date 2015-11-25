@@ -5,7 +5,7 @@ var db = require('./../db/index');
 var utils = require('./../libs/utils');
 var config = require('./../libs/config');
 var log = require('./../libs/log');
-var decryptBody = require('./../libs/decryptBody');
+var decryptBody = require('./../middleware/decryptBody');
 var helper = require('./helper');
 
 var cipher = utils.Cipher();
@@ -34,9 +34,14 @@ router.post('/register-client', function (req, res) {
 
     var clientId = utils.uid();
     var clientSecret = utils.token(16);
-    db.clients.save(clientId, clientSecret, req.body);
+    var clientKey = utils.token(16);
+    db.clients.save(clientId, clientSecret, clientKey, req.body);
 
-    res.json({clientId: clientId, clientSecret: clientSecret});
+    res.json({
+        clientId: clientId,
+        clientSecret: clientSecret,
+        clientKey: clientKey
+    });
 });
 
 
@@ -99,7 +104,7 @@ router.post('/register',
 
                     res.json(cipher.encryptJSON(
                         helper.getUserData(accessToken, refreshToken, expiresIn, user),
-                        req.user.clientSecret));
+                        req.user.clientKey));
 
                     process.nextTick(function () {
                         var token = utils.emailToken(req.body.email + req.body.username);
@@ -199,7 +204,7 @@ router.post('/login',
                     res.json(cipher.encryptJSON({
                         temporaryToken: temporaryToken,
                         expiresIn: temporaryExpiresIn
-                    }, req.user.clientSecret));
+                    }, req.user.clientKey));
 
                     // удаляем для этого клиента старые токены
                     process.nextTick(function () {
@@ -216,7 +221,7 @@ router.post('/login',
 
                     res.json(cipher.encryptJSON(
                         helper.getUserData(data.accessToken, data.refreshToken, data.expiresIn, user),
-                        req.user.clientSecret));
+                        req.user.clientKey));
                 });
             }
         });
@@ -263,7 +268,7 @@ router.post('/refresh',
                     accessToken: data.accessToken,
                     refreshToken: data.refreshToken,
                     expiresIn: data.expiresIn
-                }, req.user.clientSecret));
+                }, req.user.clientKey));
             });
         });
     });
@@ -310,7 +315,7 @@ router.post('/setup-two-factor', passport.authenticate('bearer', {session: false
                 qrImage: qrImage,
                 otpUrl: otpUrl
             }
-        }, req.user.clientSecret));
+        }, req.user.clientKey));
     } else {
         // new two-factor setup.  generate and save a secret key
         var key = utils.token(10);
@@ -345,7 +350,7 @@ router.post('/setup-two-factor', passport.authenticate('bearer', {session: false
                     qrImage: qrImage,
                     otpUrl: otpUrl
                 }
-            }, req.user.clientSecret));
+            }, req.user.clientKey));
         });
     }
 });
@@ -406,7 +411,7 @@ router.post('/login-otp',
 
             res.json(cipher.encryptJSON(
                 helper.getUserData(data.accessToken, data.refreshToken, data.expiresIn, req.user),
-                req.user.clientSecret));
+                req.user.clientKey));
         });
     });
 

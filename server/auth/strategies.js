@@ -65,6 +65,7 @@ passport.use(new BearerStrategy(
                         var user = results[0];
                         user.clientId = results[1].clientId;
                         user.clientSecret = results[1].clientSecret;
+                        user.clientKey = results[1].clientKey;
                         user.clientData = results[1].data;
                         return done(null, user);
                     });
@@ -114,6 +115,7 @@ passport.use('temporary-bearer', new BearerStrategy(
                         var user = results[0];
                         user.clientId = results[1].clientId;
                         user.clientSecret = results[1].clientSecret;
+                        user.clientKey = results[1].clientKey;
                         user.clientData = results[1].data;
                         return done(null, user);
                     });

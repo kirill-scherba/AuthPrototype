@@ -6,10 +6,11 @@ module.exports.find = function (id, done) {
     return done(null, client);
 };
 
-module.exports.save = function (id, secret, data, done) {
+module.exports.save = function (id, secret, key, data, done) {
     clients[id] = {
         clientId: id,
         clientSecret: secret,
+        clientKey: key,
         registerDate: new Date(),
         data: data
     };
