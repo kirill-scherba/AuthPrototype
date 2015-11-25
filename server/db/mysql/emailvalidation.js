@@ -2,7 +2,7 @@ var sqlPool = require('./index').pool;
 
 var query = {};
 query.find = 'select email, token, dtCreate from emailValidation where email = ?;';
-query.save = 'insert into emailValidation(email, token, dtCreate) values (?,?,?);';
+query.save = 'insert into emailValidation(email, token, dtCreate) values (?,?,?) on duplicate key update token=?, token = ?;';
 
 
 module.exports.find = function (email, done) {
@@ -26,7 +26,8 @@ module.exports.find = function (email, done) {
 };
 
 module.exports.save = function (email, token, done) {
-    sqlPool.execute(query.save, [email, token, new Date()], function (err) {
+    var dtCreate = new Date();
+    sqlPool.execute(query.save, [email, token, dtCreate, token, dtCreate], function (err) {
         if (typeof done === 'function') {
             done(err);
         }

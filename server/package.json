@@ -1,6 +1,6 @@
 {
   "name": "AuthPrototypeServer",
-  "version": "0.0.0",
+  "version": "1.4.0",
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -14,6 +14,7 @@
     "mysql2": "^0.15.8",
     "nconf": "^0.8.2",
     "node-uuid": "^1.4.3",
+    "nodemailer": "^1.10.0",
     "passport": "^0.3.0",
     "passport-facebook": "^2.0.0",
     "passport-http": "^0.3.0",

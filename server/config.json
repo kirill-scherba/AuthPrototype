@@ -15,5 +15,17 @@
     "user": "authUser",
     "password": "123",
     "database": "authPrototype"
+  },
+  "smtp": {
+    "options": {
+      "host": "example.com",
+      "port": 25,
+      "ignoreTLS": true,
+      "auth": {
+        "user": "support@example.com",
+        "pass": "secret"
+      }
+    },
+    "from": "support@example.com"
   }
 }

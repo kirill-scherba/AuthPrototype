@@ -7,12 +7,53 @@ var config = require('./../libs/config');
 var log = require('./../libs/log');
 var decryptBody = require('./../middleware/decryptBody');
 var helper = require('./helper');
+var mail = require('./../libs/mail');
 
 var cipher = utils.Cipher();
 
 var router = express.Router();
 router.use('/facebook', require('./facebook'));
 router.use('/social', require('./social'));
+
+
+function sendConfirmationEmail(email, username, main_url) {
+    var token = utils.emailToken(email + username);
+    db.emailValidation.save(email, token, function (err) {
+        if (err) {
+            log.error(err);
+            return;
+        }
+
+        //send email with url
+        var _url = main_url + "/api/auth/verify/" + token;
+
+        mail.sendConfirmation({
+            email: email,
+            username: username,
+            url: _url
+        });
+    });
+}
+
+
+function sendRestoreEmail(email, username, main_url) {
+    var token = utils.emailToken(email + username);
+    db.emailRestore.save(email, token, function (err) {
+        if (err) {
+            log.error(err);
+            return;
+        }
+
+        //send email with url
+        var _url = main_url + "/change-pwd/" + token;
+
+        mail.sendRestore({
+            email: email,
+            username: username,
+            url: _url
+        });
+    });
+}
 
 
 router.get('/', function (req, res) {
@@ -107,10 +148,7 @@ router.post('/register',
                         req.user.clientKey));
 
                     process.nextTick(function () {
-                        var token = utils.emailToken(req.body.email + req.body.username);
-                        db.emailValidation.save(req.body.email, token);
-
-                        // TODO sendConfirmationEmail(req.body.email, req.body.language, req.protocol + '://' + req.get('host'));
+                        sendConfirmationEmail(req.body.email, req.body.username, req.protocol + '://' + req.get('host'));
                     });
                 });
             });
@@ -482,10 +520,7 @@ router.post('/restore',
 
             res.status(200).end();
             process.nextTick(function () {
-                var token = utils.emailToken(req.body.email + user.username);
-                db.emailRestore.save(req.body.email, token);
-
-                // TODO sendRestoreEmail(req.body.email, token, user, req.protocol + '://' + req.get('host'));
+                sendRestoreEmail(req.body.email, req.body.username, req.protocol + '://' + req.get('host'));
             });
         });
     });
@@ -497,10 +532,7 @@ router.post('/resend-email',
         res.status(200).end();
 
         process.nextTick(function () {
-            var token = utils.emailToken(req.user.email + req.user.username);
-            db.emailValidation.save(req.user.email, token);
-
-            // TODO sendConfirmationEmail(req.user.email, req.user.language, req.protocol + '://' + req.get('host'));
+            sendConfirmationEmail(req.user.email, req.user.username, req.protocol + '://' + req.get('host'));
         });
     });
 
