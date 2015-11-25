@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS `accessTokens` (
 CREATE TABLE IF NOT EXISTS `clients` (
   `clientId` varchar(50) NOT NULL,
   `clientSecret` varchar(50) NOT NULL,
+  `clientKey` varchar(50) NOT NULL,
   `registerDate` datetime NOT NULL,
   `data` blob COMMENT 'json',
   PRIMARY KEY (`clientId`)
