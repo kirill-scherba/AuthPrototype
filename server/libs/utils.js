@@ -61,13 +61,31 @@ module.exports.calculateExpirationDate = function (expiresIn) {
 
 
 /**
- * Объект для шифрования и дешифрования
+ * Object for encryption and decryption
  * @param {String} [algorithm=aes-256-ctr]
  * @return {{encrypt: Function, decrypt: Function}}
  * @constructor
+ *
+ *
+ *
+// using CryptoJS
+function decrypt(text, secret) {
+	var ciphertext = CryptoJS.enc.Hex.parse(text); // text in hex
+	var salt = CryptoJS.lib.WordArray.create(0); // empty array
+	var decrypted = CryptoJS.AES.decrypt({ciphertext: ciphertext, salt: salt}, secret);
+	return decrypted.toString(CryptoJS.enc.Utf8)
+}
+
+// TODO not working !!!
+function encrypt(text, secret) {
+	var message = CryptoJS.enc.Utf8.parse(text); // text in hex
+	var salt = CryptoJS.lib.WordArray.create(0); // empty array
+	var encrypted = CryptoJS.AES.encrypt(message , secret, {salt: salt});
+	return encrypted.ciphertext.toString(CryptoJS.enc.Hex);
+}
  */
 module.exports.Cipher = function (algorithm) {
-    algorithm = algorithm || 'aes-256-ctr';
+    algorithm = algorithm || 'aes-256-cbc';
 
     return {
         encrypt: function (text, secret) {
