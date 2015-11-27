@@ -146,6 +146,23 @@ describe('integration testing signup', function () {
     });
 
 
+    describe("validate client", function () {
+        it("client should be valid", function (done) {
+            request(app)
+                .get('/api/auth/validate-client')
+                .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64'))
+                .expect(200, done);
+        });
+
+        it("client should not be valid", function (done) {
+            request(app)
+                .get('/api/auth/validate-client')
+                .set('Authorization', 'Basic ' + new Buffer(clientId + ':' + '111').toString('base64'))
+                .expect(401, done);
+        });
+    });
+
+
     describe("register", function () {
         it("should register and return {user{}; accessToken; refreshToken; expiresIn}", function (done) {
             request(app)

@@ -315,9 +315,26 @@ router.post('/refresh',
 router.get('/me', passport.authenticate('bearer', {session: false}), function (req, res) {
     res.json({
         clientId: req.user.clientId,
-        userId: req.user.userId
+        clientData: req.user.clientData,
+        userId: req.user.userId,
+        email: req.user.email,
+        username: req.user.username,
+        groups: req.user.groups
     });
 });
+
+
+/**
+ * Validate client
+ *
+ * @return 200
+ * @return 401
+ */
+router.get('/validate-client',
+    passport.authenticate('basic', {session: false}),
+    function (req, res) {
+        res.status(200).end();
+    });
 
 
 router.post('/logout', passport.authenticate('bearer', {session: false}), function (req, res) {
