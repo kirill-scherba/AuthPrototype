@@ -27,5 +27,8 @@
       }
     },
     "from": "support@example.com"
-  }
+  },
+  "trustedIp": [
+    "::ffff:127.0.0.1"
+  ]
 }

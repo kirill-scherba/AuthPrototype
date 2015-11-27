@@ -312,15 +312,26 @@ router.post('/refresh',
     });
 
 
+/**
+ * @return user data for users with trusted ip and clientId and userId for other users
+ */
 router.get('/me', passport.authenticate('bearer', {session: false}), function (req, res) {
-    res.json({
-        clientId: req.user.clientId,
-        clientData: req.user.clientData,
-        userId: req.user.userId,
-        email: req.user.email,
-        username: req.user.username,
-        groups: req.user.groups
-    });
+    var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    if (config.get('trustedIp').indexOf(ip) !== -1) {
+        res.json({
+            clientId: req.user.clientId,
+            clientData: req.user.clientData,
+            userId: req.user.userId,
+            email: req.user.email,
+            username: req.user.username,
+            groups: req.user.groups
+        });
+    } else {
+        res.json({
+            clientId: req.user.clientId,
+            userId: req.user.userId
+        });
+    }
 });
 
 
