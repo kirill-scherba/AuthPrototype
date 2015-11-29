@@ -1,5 +1,6 @@
 {
   "port": 3667,
+  "httpsPort": 8443,
   "facebook": {
     "clientId": 636461053160622,
     "clientSecret": "9821ab4d48212db9ddcc567627544522",

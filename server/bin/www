@@ -1,10 +1,18 @@
 #!/usr/bin/node
 
+var fs = require('fs');
+var https = require('https');
+var http = require('http');
 var app = require('../app');
 var config = require('../libs/config');
 
-app.set('port', config.get('port'));
+var httpsOptions = {
+    key: fs.readFileSync('ssl/server.pem'),
+    cert: fs.readFileSync('ssl/server.crt')
+};
 
-var server = app.listen(app.get('port'), function () {
-    console.log('Server listening on port ' + app.get('port'));
-});
+http.createServer(app).listen(config.get('port'));
+https.createServer(httpsOptions, app).listen(config.get('httpsPort'));
+
+console.log('Server listening on port ' + config.get('port'));
+console.log('HTTPS Server listening on port ' + config.get('httpsPort'));
