@@ -35,16 +35,16 @@ function send(mailOptions, callback) {
  * @public
  */
 function sendRestore(params, callback) {
-    var subject = "Password recovery";
-    var html_body = 'Hi, <br/> <br/> You recently requested кecovery password for your Zonkplay account. To enter a new password, please follow this link:<br/> <br/> <a href="' + params.url + '">' + params.url + '</a>';
-    var plaintext_body = 'Hi,\n\nYou recently requested a new password for your Zonkplay account. To enter a new password, please follow this link:\n' + params.url;
+    var subject = config.get('restorePassword:textForEmail:subject');
+    var htmlBody = config.get('restorePassword:textForEmail:htmlBody').replace('{url}', params.url);
+    var plaintextBody = config.get('restorePassword:textForEmail:plaintextBody').replace('{url}', params.url);
 
     var mailOptions = {
         from: config.get("smtp:from"),
         to: params.email,
         subject: subject,
-        text: plaintext_body,
-        html: html_body
+        text: plaintextBody,
+        html: htmlBody
     };
 
     send(mailOptions, callback);
@@ -57,16 +57,16 @@ function sendRestore(params, callback) {
  * @public
  */
 function sendConfirmation(params, callback) {
-    var subject = "Complete registration";
-    var html_body = 'Hi, <br/> <br/> We need to make sure you are human. Please verify your email and get started using your account. <br/> <br/> <a href="' + params.url + '">' + params.url + '</a>';
-    var plaintext_body = 'Hi,\n\nWe need to make sure you are human. Please verify your email and get started using your account.\n' + params.url;
+    var subject = config.get('verificationEmail:textForEmail:subject');
+    var htmlBody = config.get('verificationEmail:textForEmail:htmlBody').replace('{url}', params.url);
+    var plaintextBody = config.get('verificationEmail:textForEmail:plaintextBody').replace('{url}', params.url);
 
     var mailOptions = {
         from: config.get("smtp:from"),
         to: params.email,
         subject: subject,
-        text: plaintext_body,
-        html: html_body
+        text: plaintextBody,
+        html: htmlBody
     };
 
     send(mailOptions, callback);

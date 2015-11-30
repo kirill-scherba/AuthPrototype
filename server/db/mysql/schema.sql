@@ -167,6 +167,8 @@ BEGIN
 	delete from accessTokens where userId = _userId;
 	delete from refreshTokens where userId = _userId;
 	delete from temporaryTokens where userId = _userId;
+	delete from userGroup where userId = _userId;
+
 	delete from users where userId = _userId;
 END//
 DELIMITER ;

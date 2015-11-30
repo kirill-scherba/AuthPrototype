@@ -32,5 +32,24 @@
   },
   "trustedIp": [
     "::ffff:127.0.0.1"
-  ]
+  ],
+  "verificationEmail": {
+    "textForBrowser": {
+      "error": "An error has occurred. Try to open the link later or enter your profile and send the e-mail again.",
+      "success": "Congratulations! Your registration has been successfully completed!",
+      "expired": "Link duration has expired. Sign in your profile to create a new message with a confirmation link to complete registration."
+    },
+    "textForEmail": {
+      "subject": "Complete registration",
+      "htmlBody": "Hi, <br/> <br/> We need to make sure you are human. Please verify your email and get started using your account. <br/> <br/> <a href=\"{url}\">{url}</a>",
+      "plaintextBody": "Hi,\n\nWe need to make sure you are human. Please verify your email and get started using your account.\n{url}"
+    }
+  },
+  "restorePassword": {
+    "textForEmail": {
+      "Password recovery": "Complete registration",
+      "htmlBody": "Hi, <br/> <br/> You recently requested кecovery password for your account. To enter a new password, please follow this link:<br/> <br/> <a href=\"{url}\">{url}</a>",
+      "plaintextBody": "Hi,\n\nYou recently requested a new password for your account. To enter a new password, please follow this link:\n{url}"
+    }
+  }
 }
