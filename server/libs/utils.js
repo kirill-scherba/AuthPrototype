@@ -69,19 +69,19 @@ module.exports.calculateExpirationDate = function (expiresIn) {
  *
  *
 // using CryptoJS
-function decrypt(text, secret) {
+
+ function decrypt(text, secret) {
 	var ciphertext = CryptoJS.enc.Hex.parse(text); // text in hex
 	var salt = CryptoJS.lib.WordArray.create(0); // empty array
 	var decrypted = CryptoJS.AES.decrypt({ciphertext: ciphertext, salt: salt}, secret);
 	return decrypted.toString(CryptoJS.enc.Utf8)
 }
 
-// TODO not working !!!
 function encrypt(text, secret) {
-	var message = CryptoJS.enc.Utf8.parse(text); // text in hex
 	var salt = CryptoJS.lib.WordArray.create(0); // empty array
-	var encrypted = CryptoJS.AES.encrypt(message , secret, {salt: salt});
-	return encrypted.ciphertext.toString(CryptoJS.enc.Hex);
+	var params = CryptoJS.kdf.OpenSSL.execute(secret, 256/32, 128/32, salt);
+	var encrypted = CryptoJS.AES.encrypt(text, params.key, {iv: params.iv});
+	return encrypted.ciphertext.toString();
 }
  */
 module.exports.Cipher = function (algorithm) {
