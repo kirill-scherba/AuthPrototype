@@ -8,6 +8,7 @@
   },
   "accessTokenExpiresIn": 3600,
   "temporaryTokenExpiresIn": 600,
+  "verifyTokenExpiresIn": 600,
   "twoFactorPeriod": 30,
   "storage": "mysql",
   "mysql": {

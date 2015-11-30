@@ -91,6 +91,21 @@ module.exports.deactivate = function (id, done) {
     done(null);
 };
 
+module.exports.setGroupByEmail = function (email, group, done) {
+    var id = emailsMap.get(email);
+    if (!id) {
+        done(new Error("EMAIL_NOT_FOUND"));
+        return;
+    }
+
+    if (!users[id].groups) {
+        users[id].groups = [group];
+    } else if (users[id].groups.indexOf(group) === -1) {
+        users[id].groups.push(group);
+    }
+
+    done(null);
+};
 
 module.exports.social = {
     /**

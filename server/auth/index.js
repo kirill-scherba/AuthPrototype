@@ -584,10 +584,42 @@ router.post('/deactivate',
 
 
 /**
+ * Confirm e-mail address, add 'confirmed_email' group for user
+ */
+router.get('/verify/:token', function (req, res) {
+    db.emailValidation.find(req.params.token, function (err, result) {
+        if (err) {
+            log.error(err);
+            res.status(200).end('An error has occurred. Try to open the link later or enter your profile and send the e-mail again.');
+            return;
+        }
+
+        if (!result) {
+            res.status(200).end('An error has occurred. Try to open the link later or enter your profile and send the e-mail again.');
+            return;
+        }
+
+        if (new Date() > new Date(result.dtCreate.getTime() + config.get('verifyTokenExpiresIn') * 1000)) {
+            res.status(200).end('Link duration has expired. Sign in your profile to create a new message with a confirmation link to complete registration.'); //expired
+            return;
+        }
+
+        db.users.setGroupByEmail(result.email, 'confirmed_email', function (err) {
+            if (err) {
+                log.error(err);
+                res.status(200).end('An error has occurred. Try to open the link later or enter your profile and send the e-mail again.');
+                return;
+            }
+
+            res.status(200).end('Congratulations! Your registration has been successfully completed!');
+        });
+    });
+});
+
+
+/**
  * TODO вспомогательные урлы
- *
- /verify
- /change-pwd - станица на которую человек попадет для восстановления пароля
+ * /change-pwd - станица на которую человек попадет для восстановления пароля
  */
 
 module.exports = router;

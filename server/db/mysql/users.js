@@ -15,6 +15,8 @@ query.socialLink = 'update users set ?? = ? where userId = ?;';
 query.socialSave = 'insert into users(userId, username, registerDate, data, ??) values (?,?,?,?,?);';
 query.deactivate = 'update users set deactivated = NOW() where userId = ?;';
 query.getGroups = 'select g.name from groups g inner join userGroup ug on g.groupId = ug.groupId where ug.userId = ?';
+query.getGroupId = 'select groupId from groups where name = ?;';
+query.setGroup = 'insert into userGroup(userId, groupId) values (?,?);';
 
 function getDataFromRow(row, groups) {
     var twoFactor = null;
@@ -170,6 +172,56 @@ module.exports.deactivate = function (id, done) {
         done(err);
     });
 };
+
+
+module.exports.setGroupByEmail = function (email, group, done) {
+    // get user
+    this.findByEmail(email, function (err, user) {
+        if (err) {
+            done(err);
+            return;
+        }
+
+        if (user.groups.indexOf(group) === -1) {
+            // if user not contain group
+            sqlPool.getConnection(function (err, connection) {
+                if (err) {
+                    done(err);
+                    return;
+                }
+
+                // get group id
+                connection.query(query.getGroupId, [group], function (err, rows) {
+                    if (err) {
+                        done(err);
+                        connection.release();
+                        return;
+                    }
+
+                    if (rows.length === 0) {
+                        done(new Error("GROUP_NOT_FOUND"));
+                        connection.release();
+                        return;
+                    }
+
+                    // add group for user
+                    connection.query(query.setGroup, [user.userId, rows[0].groupId], function (err, groups) {
+                        connection.release();
+                        if (err) {
+                            done(err);
+                            return;
+                        }
+
+                        done(null);
+                    });
+                });
+            });
+        } else {
+            done(null);
+        }
+    });
+};
+
 
 module.exports.social = {
     /**

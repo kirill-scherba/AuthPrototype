@@ -15,21 +15,6 @@ CREATE DATABASE IF NOT EXISTS `authPrototype` /*!40100 DEFAULT CHARACTER SET utf
 USE `authPrototype`;
 
 
--- Дамп структуры для таблица authPrototype.accessTokens
-CREATE TABLE IF NOT EXISTS `accessTokens` (
-  `token` varchar(128) NOT NULL,
-  `userId` varchar(50) NOT NULL,
-  `clientId` varchar(50) NOT NULL,
-  `expirationDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`token`),
-  KEY `FK_accessTokens_users` (`userId`),
-  KEY `FK_accessTokens_clients` (`clientId`),
-  CONSTRAINT `FK_accessTokens_clients` FOREIGN KEY (`clientId`) REFERENCES `clients` (`clientId`),
-  CONSTRAINT `FK_accessTokens_users` FOREIGN KEY (`userId`) REFERENCES `users` (`userId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- Экспортируемые данные не выделены.
-
 
 -- Дамп структуры для таблица authPrototype.clients
 CREATE TABLE IF NOT EXISTS `clients` (
@@ -73,6 +58,47 @@ CREATE TABLE IF NOT EXISTS `groups` (
   PRIMARY KEY (`groupId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+
+-- Дамп данных таблицы authPrototype.groups: ~2 rows (приблизительно)
+/*!40000 ALTER TABLE `groups` DISABLE KEYS */;
+INSERT INTO `groups` (`groupId`, `name`) VALUES
+	(1, 'admin'),
+	(2, 'confirmed_email');
+/*!40000 ALTER TABLE `groups` ENABLE KEYS */;
+
+
+-- Дамп структуры для таблица authPrototype.socialTemporaryTokens
+CREATE TABLE IF NOT EXISTS `socialTemporaryTokens` (
+  `token` varchar(128) NOT NULL,
+  `social` varchar(50) NOT NULL,
+  `expirationDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `profile` blob COMMENT 'json',
+  `accessToken` varchar(256) NOT NULL,
+  `refreshToken` varchar(256) DEFAULT NULL,
+  PRIMARY KEY (`token`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Экспортируемые данные не выделены.
+
+
+
+-- Дамп структуры для таблица authPrototype.users
+CREATE TABLE IF NOT EXISTS `users` (
+  `userId` varchar(50) NOT NULL,
+  `email` varchar(50) DEFAULT NULL,
+  `username` varchar(50) NOT NULL,
+  `hashPassword` char(128) DEFAULT NULL COMMENT 'sha512',
+  `registerDate` datetime NOT NULL,
+  `data` blob COMMENT 'json',
+  `facebook` varchar(50) DEFAULT NULL,
+  `twoFactor` blob COMMENT 'json',
+  `deactivated` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`userId`),
+  UNIQUE KEY `email` (`email`),
+  UNIQUE KEY `facebook` (`facebook`),
+  KEY `deactivated` (`deactivated`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 -- Экспортируемые данные не выделены.
 
 
@@ -88,21 +114,19 @@ CREATE TABLE IF NOT EXISTS `refreshTokens` (
   CONSTRAINT `FK_refreshTokens_users` FOREIGN KEY (`userId`) REFERENCES `users` (`userId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Экспортируемые данные не выделены.
 
-
--- Дамп структуры для таблица authPrototype.socialTemporaryTokens
-CREATE TABLE IF NOT EXISTS `socialTemporaryTokens` (
+-- Дамп структуры для таблица authPrototype.accessTokens
+CREATE TABLE IF NOT EXISTS `accessTokens` (
   `token` varchar(128) NOT NULL,
-  `social` varchar(50) NOT NULL,
+  `userId` varchar(50) NOT NULL,
+  `clientId` varchar(50) NOT NULL,
   `expirationDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `profile` blob COMMENT 'json',
-  `accessToken` varchar(256) NOT NULL,
-  `refreshToken` varchar(256) DEFAULT NULL,
-  PRIMARY KEY (`token`)
+  PRIMARY KEY (`token`),
+  KEY `FK_accessTokens_users` (`userId`),
+  KEY `FK_accessTokens_clients` (`clientId`),
+  CONSTRAINT `FK_accessTokens_clients` FOREIGN KEY (`clientId`) REFERENCES `clients` (`clientId`),
+  CONSTRAINT `FK_accessTokens_users` FOREIGN KEY (`userId`) REFERENCES `users` (`userId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- Экспортируемые данные не выделены.
 
 
 -- Дамп структуры для таблица authPrototype.temporaryTokens
@@ -127,33 +151,13 @@ CREATE TABLE IF NOT EXISTS `userGroup` (
   `userId` varchar(50) NOT NULL,
   `groupId` int(11) NOT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `userId_groupId` (`userId`,`groupId`),
   KEY `FK_userGroup_users` (`userId`),
   KEY `FK_userGroup_groups` (`groupId`),
   CONSTRAINT `FK_userGroup_groups` FOREIGN KEY (`groupId`) REFERENCES `groups` (`groupId`),
   CONSTRAINT `FK_userGroup_users` FOREIGN KEY (`userId`) REFERENCES `users` (`userId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Экспортируемые данные не выделены.
-
-
--- Дамп структуры для таблица authPrototype.users
-CREATE TABLE IF NOT EXISTS `users` (
-  `userId` varchar(50) NOT NULL,
-  `email` varchar(50) DEFAULT NULL,
-  `username` varchar(50) NOT NULL,
-  `hashPassword` char(128) DEFAULT NULL COMMENT 'sha512',
-  `registerDate` datetime NOT NULL,
-  `data` blob COMMENT 'json',
-  `facebook` varchar(50) DEFAULT NULL,
-  `twoFactor` blob COMMENT 'json',
-  `deactivated` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`userId`),
-  UNIQUE KEY `email` (`email`),
-  UNIQUE KEY `facebook` (`facebook`),
-  KEY `deactivated` (`deactivated`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- Экспортируемые данные не выделены.
 
 
 -- Дамп структуры для процедура authPrototype.spDeleteUser
@@ -166,6 +170,8 @@ BEGIN
 	delete from users where userId = _userId;
 END//
 DELIMITER ;
+
+
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
 /*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1, @OLD_FOREIGN_KEY_CHECKS) */;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
