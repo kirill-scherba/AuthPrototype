@@ -17,6 +17,7 @@ query.deactivate = 'update users set deactivated = NOW() where userId = ?;';
 query.getGroups = 'select g.name from groups g inner join userGroup ug on g.groupId = ug.groupId where ug.userId = ?';
 query.getGroupId = 'select groupId from groups where name = ?;';
 query.setGroup = 'insert into userGroup(userId, groupId) values (?,?);';
+query.setUsername = 'update users set username = ? where userId = ?;';
 
 function getDataFromRow(row, groups) {
     var twoFactor = null;
@@ -219,6 +220,13 @@ module.exports.setGroupByEmail = function (email, group, done) {
         } else {
             done(null);
         }
+    });
+};
+
+
+module.exports.setUsername = function (id, username, done) {
+    sqlPool.execute(query.setUsername, [username, id], function (err) {
+        done(err);
     });
 };
 

@@ -107,6 +107,12 @@ module.exports.setGroupByEmail = function (email, group, done) {
     done(null);
 };
 
+module.exports.setUsername = function (id, username, done) {
+    users[id].username = username;
+    done(null);
+};
+
+
 module.exports.social = {
     /**
      * login or register

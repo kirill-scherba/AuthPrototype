@@ -19,6 +19,7 @@ describe('integration testing signup', function () {
 
     var email = "bob@gmail.com";
     var username = "bob";
+    var newUsername = "new bob";
     var password = "secret";
     var language = "en";
 
@@ -462,6 +463,33 @@ describe('integration testing signup', function () {
 
                     done();
                 });
+        });
+    });
+
+
+    describe("set-username", function () {
+        it("should update username", function (done) {
+            request(app)
+                .post('/api/auth/change-username')
+                .set('Authorization', 'Bearer ' + userAuthDataRefresh.accessToken)
+                .send({
+                    username: newUsername
+                })
+                .expect(200, done);
+        });
+
+        it("should contain new username in db", function (done) {
+            waitDb(function () { // в БД иногда не успевает записаться
+                db.users.find(userAuthDataRefresh.userId, function (err, user) {
+                    if (err) {
+                        return done(err);
+                    }
+                    user.should.not.be.undefined;
+                    user.username.should.be.eql(newUsername);
+
+                    done();
+                });
+            });
         });
     });
 

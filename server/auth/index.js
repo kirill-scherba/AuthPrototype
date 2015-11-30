@@ -427,6 +427,7 @@ router.post('/setup-two-factor', passport.authenticate('bearer', {session: false
  *
  * @param hashPassword
  * @return 200
+ * @return 401
  * @return 400 + WRONG_PASSWORD
  * @return 500
  */
@@ -487,6 +488,7 @@ router.post('/login-otp',
  * @param current, new
  * @return 200
  * @return 400 + WRONG_PASSWORD
+ * @return 401
  * @return 500
  */
 router.post('/change-password',
@@ -523,6 +525,7 @@ router.post('/change-password',
  * @param email
  * @return 200 - сообщение отправлено или email не найден
  * @return 400 + email нет в запросе
+ * @return 401
  * @return 500
  */
 router.post('/restore',
@@ -615,6 +618,28 @@ router.get('/verify/:token', function (req, res) {
         });
     });
 });
+
+
+/**
+ * Update username
+ * @param username
+ * @return 200
+ * @return 401
+ * @return 500
+ */
+router.post('/change-username',
+    passport.authenticate('bearer', {session: false}),
+    function (req, res) {
+        db.users.setUsername(req.user.userId, req.body.username, function (err) {
+            if (err) {
+                log.error(err);
+                res.status(500).end();
+                return;
+            }
+
+            res.status(200).end();
+        });
+    });
 
 
 /**
