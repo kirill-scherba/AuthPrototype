@@ -16,7 +16,7 @@ router.use('/facebook', require('./facebook'));
 router.use('/social', require('./social'));
 
 
-function sendConfirmationEmail(email, username, main_url) {
+function sendConfirmationEmail(email, username, main_url, params) {
     var token = utils.emailToken(email + username);
     db.emailValidation.save(email, token, function (err) {
         if (err) {
@@ -26,33 +26,45 @@ function sendConfirmationEmail(email, username, main_url) {
 
         //send email with url
         var _url = main_url + "/api/auth/verify/" + token;
+        params = params || {};
+        params.url = _url;
 
-        mail.sendConfirmation({
-            email: email,
-            username: username,
-            url: _url
-        });
+        mail.sendConfirmation(email, params);
     });
 }
 
 
-function sendRestoreEmail(email, username, main_url) {
-    var token = utils.emailToken(email + username);
-    db.emailRestore.save(email, token, function (err) {
+function sendRestoreEmail(userId, email, params) {
+    var password = utils.generatePassword();
+    var hashPassword = utils.getHash(password);
+    db.users.setPassword(userId, hashPassword, function (err) {
         if (err) {
             log.error(err);
             return;
         }
 
-        //send email with url
-        var _url = main_url + "/change-pwd/" + token;
-
-        mail.sendRestore({
-            email: email,
-            username: username,
-            url: _url
-        });
+        params = params || {};
+        params.password = password;
+        mail.sendRestore(email, params);
     });
+
+    // // /change-pwd not implemented
+    //var token = utils.emailToken(email + username);
+    //db.emailRestore.save(email, token, function (err) {
+    //    if (err) {
+    //        log.error(err);
+    //        return;
+    //    }
+    //
+    //    //send email with url
+    //    var _url = main_url + "/change-pwd/" + token;
+    //
+    //    mail.sendRestore({
+    //        email: email,
+    //        username: username,
+    //        url: _url
+    //    });
+    //});
 }
 
 
@@ -90,7 +102,7 @@ router.post('/register-client', function (req, res) {
  * Регистрация пользователя
  * Требуется basic авторизация по clientId и clientSecret
  *
- * @param email, hashPassword, username, userData + req.user.clientId
+ * @param email, hashPassword, username, userData + req.user.clientId, params (object for replacement by template)
  * @return 200 + {userId, accessToken, refreshToken, expiresIn}
  * @return 400
  * @return 400 + INVALID_EMAIL
@@ -148,7 +160,7 @@ router.post('/register',
                         req.user.clientKey));
 
                     process.nextTick(function () {
-                        sendConfirmationEmail(req.body.email, req.body.username, req.protocol + '://' + req.get('host'));
+                        sendConfirmationEmail(req.body.email, req.body.username, req.protocol + '://' + req.get('host'), req.body.params);
                     });
                 });
             });
@@ -357,9 +369,9 @@ router.post('/logout', passport.authenticate('bearer', {session: false}), functi
 
 
 /**
- * Установить двухфакторную авторизацию
+ * Set two-factor authorization
  *
- * bearer стратегия отдает побъект пользователя
+ * bearer strategy returns user object
  */
 router.post('/setup-two-factor', passport.authenticate('bearer', {session: false}), function (req, res) {
     var encodedKey;
@@ -423,7 +435,7 @@ router.post('/setup-two-factor', passport.authenticate('bearer', {session: false
 
 
 /**
- * Отключить двухфакторную авторизацию
+ * Disable two-factor authentication
  *
  * @param hashPassword
  * @return 200
@@ -521,16 +533,16 @@ router.post('/change-password',
 
 
 /**
- * Восстановление пароля по email
- * @param email
- * @return 200 - сообщение отправлено или email не найден
- * @return 400 + email нет в запросе
+ * Restore password by email
+ * @param email, params (object for replacement by template)
+ * @return 200 - mail sent or email was not found
+ * @return 400 + email not contained in request
  * @return 401
  * @return 500
  */
 router.post('/restore',
     passport.authenticate('basic', {session: false}),
-    decryptBody, // чтобы закрыть email пользователя
+    decryptBody, // to close user email
     function (req, res) {
         if (!req.body.email) {
             res.status(400).end();
@@ -539,7 +551,7 @@ router.post('/restore',
 
         db.users.findByEmail(req.body.email, function (err, user) {
             if (err && err.message === "EMAIL_NOT_FOUND" || !user) {
-                res.status(200).end(); // не показываем, что такого e-mail нет
+                res.status(200).end(); // does not show that email not found
                 return;
             }
 
@@ -551,19 +563,24 @@ router.post('/restore',
 
             res.status(200).end();
             process.nextTick(function () {
-                sendRestoreEmail(req.body.email, req.body.username, req.protocol + '://' + req.get('host'));
+                sendRestoreEmail(user.userId, req.body.email, req.body.params);
             });
         });
     });
 
 
+/**
+ * @param email, params (object for replacement by template)
+ * @return 200
+ * @return 401
+ */
 router.post('/resend-email',
     passport.authenticate('bearer', {session: false}),
     function (req, res) {
         res.status(200).end();
 
         process.nextTick(function () {
-            sendConfirmationEmail(req.user.email, req.user.username, req.protocol + '://' + req.get('host'));
+            sendConfirmationEmail(req.user.email, req.user.username, req.protocol + '://' + req.get('host'), req.body.params);
         });
     });
 
@@ -641,10 +658,5 @@ router.post('/change-username',
         });
     });
 
-
-/**
- * TODO вспомогательные урлы
- * /change-pwd - станица на которую человек попадет для восстановления пароля
- */
 
 module.exports = router;

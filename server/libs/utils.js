@@ -2,7 +2,7 @@ var crypto = require('crypto');
 var uuid = require('node-uuid');
 var config = require('./../libs/config');
 
-// регулярка для валидации email
+// regular expression for validating email
 var re = /^([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22))*\x40([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d))*$/;
 
 
@@ -11,7 +11,7 @@ module.exports.uid = function () {
 };
 
 /**
- * Генерировать токен
+ * Generate token
  * @param {number} [size=32]
  * @return {string}
  */
@@ -24,13 +24,21 @@ module.exports.token = function (size) {
 };
 
 
-/** хеш сумма от пароля для его хранения */
+/** hash sum of the password to store */
 module.exports.getHash = function (password) {
     return crypto.createHash('sha512').update(password).digest('hex');
 };
 
 
-/** генерация токена (часть url) для подтверждения по email */
+/** random password */
+module.exports.generatePassword = function () {
+    return Math.random()    // Generate random number, eg: 0.123456
+        .toString(36)       // Convert  to base-36 : "0.4fzyo82mvyr"
+        .slice(-8);         // Cut off last 8 characters : "yo82mvyr"
+};
+
+
+/** generate token (path of url) for confirmation by email */
 module.exports.emailToken = function (userStr) {
     //рандом + timestamp + e-mail + соль
     var shasum = crypto.createHash('sha512');
@@ -47,7 +55,7 @@ module.exports.validateEmail = function (email) {
 };
 
 /**
- * Посчитать дату истечения токена
+ * Calculate expiration date for token
  * @param {number} [expiresIn] - ms
  * @return {Date}
  */
@@ -68,7 +76,7 @@ module.exports.calculateExpirationDate = function (expiresIn) {
  *
  *
  *
-// using CryptoJS
+ // using CryptoJS
 
  function decrypt(text, secret) {
 	var ciphertext = CryptoJS.enc.Hex.parse(text); // text in hex
@@ -77,7 +85,7 @@ module.exports.calculateExpirationDate = function (expiresIn) {
 	return decrypted.toString(CryptoJS.enc.Utf8)
 }
 
-function encrypt(text, secret) {
+ function encrypt(text, secret) {
 	var salt = CryptoJS.lib.WordArray.create(0); // empty array
 	var params = CryptoJS.kdf.OpenSSL.execute(secret, 256/32, 128/32, salt);
 	var encrypted = CryptoJS.AES.encrypt(text, params.key, {iv: params.iv});
@@ -119,4 +127,33 @@ module.exports.Cipher = function (algorithm) {
             return result;
         }
     };
+};
+
+
+/**
+ * Replace string by template
+ *
+ * Example:
+ * var str = "I have a {cat}, a {dog}, and a {goat} and a {goat}."
+ * var mapObj = {
+ *   cat:"dog",
+ *   dog:"goat",
+ *   goat:"cat"
+ * };
+ *
+ * replaceByTemplate(str, mapObj) // "I have a dog, a goat, and a cat and a cat."
+ *
+ * @param {String} str
+ * @param {Object} mapObj
+ * @return {string}
+ */
+module.exports.replaceByTemplate = function (str, mapObj) {
+    var template = Object.keys(mapObj).map(function (key) {
+        return '{' + key + '}';
+    }).join("|");
+    var re = new RegExp(template, "gi");
+
+    return str.replace(re, function (matched) {
+        return mapObj[matched.toLowerCase().slice(1, -1)];
+    });
 };

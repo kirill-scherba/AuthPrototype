@@ -1,6 +1,7 @@
 var nodemailer = require('nodemailer');
 var log = require('./log');
 var config = require('./config');
+var utils = require('./utils');
 
 // create reusable transporter object using SMTP transport
 var transporter = nodemailer.createTransport(config.get("smtp:options"));
@@ -30,18 +31,19 @@ function send(mailOptions, callback) {
 
 
 /**
- * @param params - {email, url}
- * @param callback
+ * @param {String} email
+ * @param {Object} params - mapObj for replacement by template
+ * @param {Function} [callback]
  * @public
  */
-function sendRestore(params, callback) {
+function sendRestore(email, params, callback) {
     var subject = config.get('restorePassword:textForEmail:subject');
-    var htmlBody = config.get('restorePassword:textForEmail:htmlBody').replace('{url}', params.url);
-    var plaintextBody = config.get('restorePassword:textForEmail:plaintextBody').replace('{url}', params.url);
+    var htmlBody = utils.replaceByTemplate(config.get('restorePassword:textForEmail:htmlBody'), params);
+    var plaintextBody = utils.replaceByTemplate(config.get('restorePassword:textForEmail:plaintextBody'), params);
 
     var mailOptions = {
         from: config.get("smtp:from"),
-        to: params.email,
+        to: email,
         subject: subject,
         text: plaintextBody,
         html: htmlBody
@@ -52,18 +54,19 @@ function sendRestore(params, callback) {
 
 
 /**
- * @param params - {email, url}
- * @param callback
+ * @param {String} email
+ * @param {Object} params - mapObj for replacement by template
+ * @param {Function} [callback]
  * @public
  */
-function sendConfirmation(params, callback) {
+function sendConfirmation(email, params, callback) {
     var subject = config.get('verificationEmail:textForEmail:subject');
-    var htmlBody = config.get('verificationEmail:textForEmail:htmlBody').replace('{url}', params.url);
-    var plaintextBody = config.get('verificationEmail:textForEmail:plaintextBody').replace('{url}', params.url);
+    var htmlBody = utils.replaceByTemplate(config.get('verificationEmail:textForEmail:htmlBody'), params);
+    var plaintextBody = utils.replaceByTemplate(config.get('verificationEmail:textForEmail:plaintextBody'), params);
 
     var mailOptions = {
         from: config.get("smtp:from"),
-        to: params.email,
+        to: email,
         subject: subject,
         text: plaintextBody,
         html: htmlBody

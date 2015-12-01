@@ -47,9 +47,9 @@
   },
   "restorePassword": {
     "textForEmail": {
-      "Password recovery": "Complete registration",
-      "htmlBody": "Hi, <br/> <br/> You recently requested кecovery password for your account. To enter a new password, please follow this link:<br/> <br/> <a href=\"{url}\">{url}</a>",
-      "plaintextBody": "Hi,\n\nYou recently requested a new password for your account. To enter a new password, please follow this link:\n{url}"
+      "Password recovery": "Password recovery",
+      "htmlBody": "Hi, <br/> <br/> You recently requested recovery password for your account. Your new password: {password}.",
+      "plaintextBody": "Hi,\n\nYou recently requested a new password for your account. Your new password: {password}."
     }
   }
 }
