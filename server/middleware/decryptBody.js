@@ -1,12 +1,19 @@
 var cipher = require('./../libs/utils').Cipher();
 
 /**
- * Middleware расшифровывает тело запроса и ставит расшифрованный вариант в body
+ * Middleware for decrypt parameter 'data' from body
  */
 module.exports = function (req, res, next) {
     if (req.body.data && req.user && req.user.clientKey) {
-        req.body = cipher.decryptJSON(req.body.data, req.user.clientKey);
-    }
+        var obj = cipher.decryptJSON(req.body.data, req.user.clientKey);
+        if (!obj) {
+            res.send(400);
+            return;
+        }
 
-    return next();
+        req.body = obj;
+        next();
+    } else {
+        res.send(400);
+    }
 };
