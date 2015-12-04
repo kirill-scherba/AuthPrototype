@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS `groups` (
   `groupId` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL DEFAULT '0',
   PRIMARY KEY (`groupId`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 -- Дамп данных таблицы authPrototype.groups: ~2 rows (приблизительно)
