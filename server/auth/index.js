@@ -74,13 +74,13 @@ router.get('/', function (req, res) {
 
 
 /**
- * Регистрация клиента (приложение, браузер и т.д. -user-agent)
+ * Register client (application, browser etc. - user-agent)
  * @param clientData
  * @return 400 + USER_DATA_IS_EMPTY
  * @return 200 + {clientId, clientSecret}
  */
 router.post('/register-client', function (req, res) {
-    if (Object.keys(req.body).length === 0) { // проверяем, что тело не пустое
+    if (Object.keys(req.body).length === 0) { // check what body not empty
         res.status(400).end("USER_DATA_IS_EMPTY");
         return;
     }
@@ -99,14 +99,14 @@ router.post('/register-client', function (req, res) {
 
 
 /**
- * Регистрация пользователя
- * Требуется basic авторизация по clientId и clientSecret
- *
+ * User registration
+ * Required basic authorization by clientId and clientSecret
  * @param email, hashPassword, username, userData + req.user.clientId, params (object for replacement by template)
  * @return 200 + {userId, accessToken, refreshToken, expiresIn}
  * @return 400
  * @return 400 + INVALID_EMAIL
  * @return 400 + EMAIL_EXISTS
+ * @return 401
  * @return 500
  */
 router.post('/register',
@@ -203,16 +203,15 @@ function generateAuthTokens(userId, clientId, done) {
 
 
 /**
- * Вход пользователя по email
- * Требуется basic авторизация по clientId и clientSecret
- *
+ * Login by email
+ * Required basic authorization by clientId and clientSecret
  * @param email, hashPassword
  * @return 200 + {userId, accessToken, refreshToken, expiresIn}
  * @return 400 + HASHPASSWORD_IS_EMPTY
  * @return 400 + INVALID_EMAIL
  * @return 400 + WRONG_EMAIL_OR_PASSWORD
+ * @return 401
  * @return 500
- *
  */
 router.post('/login',
     passport.authenticate('basic', {session: false}),
@@ -279,8 +278,7 @@ router.post('/login',
 
 
 /**
- * Замена токена по refreshToken
- *
+ * Get new pair of tokens by refreshToken
  * @param refreshToken
  * @return 400
  * @return 401
@@ -325,31 +323,34 @@ router.post('/refresh',
 
 
 /**
- * @return user data for users with trusted ip and clientId and userId for other users
+ * User data for users with trusted ip and clientId and userId for other users
+ * @return 200 + user data
+ * @return 401
  */
-router.get('/me', passport.authenticate('bearer', {session: false}), function (req, res) {
-    var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    if (config.get('trustedIp').indexOf(ip) !== -1) {
-        res.json({
-            clientId: req.user.clientId,
-            clientData: req.user.clientData,
-            userId: req.user.userId,
-            email: req.user.email,
-            username: req.user.username,
-            groups: req.user.groups
-        });
-    } else {
-        res.json({
-            clientId: req.user.clientId,
-            userId: req.user.userId
-        });
-    }
-});
+router.get('/me',
+    passport.authenticate('bearer', {session: false}),
+    function (req, res) {
+        var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        if (config.get('trustedIp').indexOf(ip) !== -1) {
+            res.json({
+                clientId: req.user.clientId,
+                clientData: req.user.clientData,
+                userId: req.user.userId,
+                email: req.user.email,
+                username: req.user.username,
+                groups: req.user.groups
+            });
+        } else {
+            res.json({
+                clientId: req.user.clientId,
+                userId: req.user.userId
+            });
+        }
+    });
 
 
 /**
  * Validate client
- *
  * @return 200
  * @return 401
  */
@@ -360,67 +361,42 @@ router.get('/validate-client',
     });
 
 
-router.post('/logout', passport.authenticate('bearer', {session: false}), function (req, res) {
-    db.accessTokens.deleteByClientId(req.user.clientId);
-    db.refreshTokens.deleteByClientId(req.user.clientId);
+/**
+ * Logout
+ * @return 200
+ * @return 401
+ */
+router.post('/logout',
+    passport.authenticate('bearer', {session: false}),
+    function (req, res) {
+        db.accessTokens.deleteByClientId(req.user.clientId);
+        db.refreshTokens.deleteByClientId(req.user.clientId);
 
-    res.status(200).end();
-});
+        res.status(200).end();
+    });
 
 
 /**
  * Set two-factor authorization
- *
- * bearer strategy returns user object
+ * @return 200 + two-factor data
+ * @return 401
+ * @return 500
  */
-router.post('/setup-two-factor', passport.authenticate('bearer', {session: false}), function (req, res) {
-    var encodedKey;
-    var otpUrl;
-    var qrImage;
+router.post('/setup-two-factor',
+    passport.authenticate('bearer', {session: false}),
+    function (req, res) {
+        var encodedKey;
+        var otpUrl;
+        var qrImage;
 
-    if (req.user.twoFactor) {
-        // two-factor auth has already been setup
-        encodedKey = base32.encode(req.user.twoFactor.key);
+        if (req.user.twoFactor) {
+            // two-factor auth has already been setup
+            encodedKey = base32.encode(req.user.twoFactor.key);
 
-        // generate QR code for scanning into Google Authenticator
-        // reference: https://code.google.com/p/google-authenticator/wiki/KeyUriFormat
-        otpUrl = 'otpauth://totp/' + req.user.email + '?secret=' + encodedKey + '&period=' + req.user.twoFactor.period;
-        qrImage = 'https://chart.googleapis.com/chart?chs=166x166&chld=L|0&cht=qr&chl=' + encodeURIComponent(otpUrl);
-
-        res.json(cipher.encryptJSON({
-            twoFactor: {
-                key: encodedKey.toString(),
-                qrImage: qrImage,
-                otpUrl: otpUrl
-            }
-        }, req.user.clientKey));
-    } else {
-        // new two-factor setup.  generate and save a secret key
-        var key = utils.token(10);
-        encodedKey = base32.encode(key);
-
-
-        /**
-         * RFC 6238
-         * We RECOMMEND a default time-step size of 30 seconds.  This default
-         * value of 30 seconds is selected as a balance between security and
-         * usability.
-         *
-         * Google Authenticator: support for 30-second TOTP codes
-         */
-        var period = config.get('twoFactorPeriod');
-
-        // generate QR code for scanning into Google Authenticator
-        // reference: https://code.google.com/p/google-authenticator/wiki/KeyUriFormat
-        otpUrl = 'otpauth://totp/' + req.user.email + '?secret=' + encodedKey + '&period=' + period;
-        qrImage = 'https://chart.googleapis.com/chart?chs=166x166&chld=L|0&cht=qr&chl=' + encodeURIComponent(otpUrl);
-
-        db.users.setTwoFactor(req.user.userId, {key: key, period: period}, function (err) {
-            if (err) {
-                log.error(err);
-                res.status(500).end();
-                return;
-            }
+            // generate QR code for scanning into Google Authenticator
+            // reference: https://code.google.com/p/google-authenticator/wiki/KeyUriFormat
+            otpUrl = 'otpauth://totp/' + req.user.email + '?secret=' + encodedKey + '&period=' + req.user.twoFactor.period;
+            qrImage = 'https://chart.googleapis.com/chart?chs=166x166&chld=L|0&cht=qr&chl=' + encodeURIComponent(otpUrl);
 
             res.json(cipher.encryptJSON({
                 twoFactor: {
@@ -429,14 +405,48 @@ router.post('/setup-two-factor', passport.authenticate('bearer', {session: false
                     otpUrl: otpUrl
                 }
             }, req.user.clientKey));
-        });
-    }
-});
+        } else {
+            // new two-factor setup.  generate and save a secret key
+            var key = utils.token(10);
+            encodedKey = base32.encode(key);
+
+
+            /**
+             * RFC 6238
+             * We RECOMMEND a default time-step size of 30 seconds.  This default
+             * value of 30 seconds is selected as a balance between security and
+             * usability.
+             *
+             * Google Authenticator: support for 30-second TOTP codes
+             */
+            var period = config.get('twoFactorPeriod');
+
+            // generate QR code for scanning into Google Authenticator
+            // reference: https://code.google.com/p/google-authenticator/wiki/KeyUriFormat
+            otpUrl = 'otpauth://totp/' + req.user.email + '?secret=' + encodedKey + '&period=' + period;
+            qrImage = 'https://chart.googleapis.com/chart?chs=166x166&chld=L|0&cht=qr&chl=' + encodeURIComponent(otpUrl);
+
+            db.users.setTwoFactor(req.user.userId, {key: key, period: period}, function (err) {
+                if (err) {
+                    log.error(err);
+                    res.status(500).end();
+                    return;
+                }
+
+                res.json(cipher.encryptJSON({
+                    twoFactor: {
+                        key: encodedKey.toString(),
+                        qrImage: qrImage,
+                        otpUrl: otpUrl
+                    }
+                }, req.user.clientKey));
+            });
+        }
+    });
 
 
 /**
  * Disable two-factor authentication
- *
  * @param hashPassword
  * @return 200
  * @return 401
@@ -455,7 +465,7 @@ router.post('/disable-two-factor',
             }
 
             if (user.hashPassword !== req.body.hashPassword) {
-                res.status(400).end("WRONG_PASSWORD"); // не верный пароль
+                res.status(400).end("WRONG_PASSWORD");
                 return;
             }
 
@@ -477,8 +487,14 @@ router.post('/disable-two-factor',
     });
 
 
+/**
+ * Login with OTP code
+ * @return 200 + {userId, accessToken, refreshToken, expiresIn}
+ * @return 401
+ * @return 500
+ */
 router.post('/login-otp',
-    passport.authenticate('temporary-bearer', {session: false}), // получает юзера и пробрасывает в totp стратегию
+    passport.authenticate('temporary-bearer', {session: false}), // gets a user and forwarding to totp strategy
     passport.authenticate('totp', {session: false}),
     function (req, res) {
         generateAuthTokens(req.user.userId, req.user.clientId, function (err, data) {
@@ -496,7 +512,7 @@ router.post('/login-otp',
 
 
 /**
- * Изменить пароль
+ * Change password
  * @param current, new
  * @return 200
  * @return 400 + WRONG_PASSWORD
@@ -515,7 +531,7 @@ router.post('/change-password',
             }
 
             if (user.hashPassword !== req.body.current) {
-                res.status(400).end("WRONG_PASSWORD"); // не верный пароль
+                res.status(400).end("WRONG_PASSWORD");
                 return;
             }
 
