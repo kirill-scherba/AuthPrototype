@@ -113,6 +113,12 @@ module.exports.setUsername = function (id, username, done) {
 };
 
 
+module.exports.setUserData = function (id, data, done) {
+    users[id].data = data;
+    done(null);
+};
+
+
 module.exports.social = {
     /**
      * login or register

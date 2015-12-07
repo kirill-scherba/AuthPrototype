@@ -467,7 +467,7 @@ describe('integration testing signup', function () {
     });
 
 
-    describe("set-username", function () {
+    describe("change-username", function () {
         it("should update username", function (done) {
             request(app)
                 .post('/api/auth/change-username')
@@ -484,8 +484,39 @@ describe('integration testing signup', function () {
                     if (err) {
                         return done(err);
                     }
+
                     user.should.not.be.undefined;
                     user.username.should.be.eql(newUsername);
+
+                    done();
+                });
+            });
+        });
+    });
+
+
+    describe("change-user-data", function () {
+        var newUserData = {b: 1};
+
+        it("should update user data", function (done) {
+            request(app)
+                .post('/api/auth/change-user-data')
+                .set('Authorization', 'Bearer ' + userAuthDataRefresh.accessToken)
+                .send(cipher.encryptJSON({
+                        userData: newUserData
+                    }, clientKey))
+                    .expect(200, done);
+        });
+
+        it("should contain new user data in db", function (done) {
+            waitDb(function () { // в БД иногда не успевает записаться
+                db.users.find(userAuthDataRefresh.userId, function (err, user) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    user.should.not.be.undefined;
+                    user.data.should.be.eql(newUserData);
 
                     done();
                 });

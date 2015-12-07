@@ -18,6 +18,8 @@ query.getGroups = 'select g.name from groups g inner join userGroup ug on g.grou
 query.getGroupId = 'select groupId from groups where name = ?;';
 query.setGroup = 'insert into userGroup(userId, groupId) values (?,?);';
 query.setUsername = 'update users set username = ? where userId = ?;';
+query.setUserData = 'update users set data = ? where userId = ?;';
+
 
 function getDataFromRow(row, groups) {
     var twoFactor = null;
@@ -229,6 +231,14 @@ module.exports.setUsername = function (id, username, done) {
         done(err);
     });
 };
+
+
+module.exports.setUserData = function (id, data, done) {
+    sqlPool.execute(query.setUserData, [JSON.stringify(data), id], function (err) {
+        done(err);
+    });
+};
+
 
 
 module.exports.social = {

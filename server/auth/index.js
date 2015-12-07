@@ -585,6 +585,12 @@ router.post('/resend-email',
     });
 
 
+/**
+ * Deactivate user
+ * @return 200
+ * @return 401
+ * @return 501
+ */
 router.post('/deactivate',
     passport.authenticate('bearer', {session: false}),
     function (req, res) {
@@ -648,6 +654,29 @@ router.post('/change-username',
     passport.authenticate('bearer', {session: false}),
     function (req, res) {
         db.users.setUsername(req.user.userId, req.body.username, function (err) {
+            if (err) {
+                log.error(err);
+                res.status(500).end();
+                return;
+            }
+
+            res.status(200).end();
+        });
+    });
+
+
+/**
+ * Update user data
+ * @param userData
+ * @return 200
+ * @return 401
+ * @return 500
+ */
+router.post('/change-user-data',
+    passport.authenticate('bearer', {session: false}),
+    decryptBody,
+    function (req, res) {
+        db.users.setUserData(req.user.userId, req.body.userData, function (err) {
             if (err) {
                 log.error(err);
                 res.status(500).end();
