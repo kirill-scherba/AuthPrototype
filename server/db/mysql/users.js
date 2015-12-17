@@ -178,8 +178,9 @@ module.exports.deactivate = function (id, done) {
 
 
 module.exports.setGroupByEmail = function (email, group, done) {
+    var self = this;
     // get user
-    this.findByEmail(email, function (err, user) {
+    self.findByEmail(email, function (err, user) {
         if (err) {
             done(err);
             return;
@@ -187,41 +188,46 @@ module.exports.setGroupByEmail = function (email, group, done) {
 
         if (user.groups.indexOf(group) === -1) {
             // if user not contain group
-            sqlPool.getConnection(function (err, connection) {
+            self.setGroup(user.userId, group, done);
+        } else {
+            done(null);
+        }
+    });
+};
+
+
+module.exports.setGroup = function (userId, group, done) {
+    sqlPool.getConnection(function (err, connection) {
+        if (err) {
+            done(err);
+            return;
+        }
+
+        // get group id
+        connection.query(query.getGroupId, [group], function (err, rows) {
+            if (err) {
+                done(err);
+                connection.release();
+                return;
+            }
+
+            if (rows.length === 0) {
+                done(new Error("GROUP_NOT_FOUND"));
+                connection.release();
+                return;
+            }
+
+            // add group for user
+            connection.query(query.setGroup, [userId, rows[0].groupId], function (err, groups) {
+                connection.release();
                 if (err) {
                     done(err);
                     return;
                 }
 
-                // get group id
-                connection.query(query.getGroupId, [group], function (err, rows) {
-                    if (err) {
-                        done(err);
-                        connection.release();
-                        return;
-                    }
-
-                    if (rows.length === 0) {
-                        done(new Error("GROUP_NOT_FOUND"));
-                        connection.release();
-                        return;
-                    }
-
-                    // add group for user
-                    connection.query(query.setGroup, [user.userId, rows[0].groupId], function (err, groups) {
-                        connection.release();
-                        if (err) {
-                            done(err);
-                            return;
-                        }
-
-                        done(null);
-                    });
-                });
+                done(null);
             });
-        } else {
-            done(null);
-        }
+        });
     });
 };
 
@@ -238,7 +244,6 @@ module.exports.setUserData = function (id, data, done) {
         done(err);
     });
 };
-
 
 
 module.exports.social = {

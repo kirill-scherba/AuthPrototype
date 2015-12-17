@@ -107,6 +107,16 @@ module.exports.setGroupByEmail = function (email, group, done) {
     done(null);
 };
 
+module.exports.setGroup = function (userId, group, done) {
+    if (!users[userId].groups) {
+        users[userId].groups = [group];
+    } else if (users[userId].groups.indexOf(group) === -1) {
+        users[userId].groups.push(group);
+    }
+
+    done(null);
+};
+
 module.exports.setUsername = function (id, username, done) {
     users[id].username = username;
     done(null);

@@ -350,6 +350,39 @@ router.get('/me',
 
 
 /**
+ * Add group to user
+ * @param userId, group
+ * @return 200
+ * @return 400 + GROUP_NOT_FOUND
+ * @return 401
+ * @return 500
+ */
+router.post('/add-group',
+    function (req, res) {
+        var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        if (config.get('trustedIp').indexOf(ip) === -1) {
+            res.status(401).end();
+            return;
+        }
+
+        db.users.setGroup(req.body.userId, req.body.group, function (err) {
+            if (err && err.message === 'GROUP_NOT_FOUND') {
+                res.status(400).end('GROUP_NOT_FOUND');
+                return;
+            }
+
+            if (err) {
+                log.error(err);
+                res.status(500).end();
+                return;
+            }
+
+            res.status(200).end();
+        });
+    });
+
+
+/**
  * Validate client
  * @return 200
  * @return 401

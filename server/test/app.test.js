@@ -503,9 +503,9 @@ describe('integration testing signup', function () {
                 .post('/api/auth/change-user-data')
                 .set('Authorization', 'Bearer ' + userAuthDataRefresh.accessToken)
                 .send(cipher.encryptJSON({
-                        userData: newUserData
-                    }, clientKey))
-                    .expect(200, done);
+                    userData: newUserData
+                }, clientKey))
+                .expect(200, done);
         });
 
         it("should contain new user data in db", function (done) {
@@ -517,6 +517,45 @@ describe('integration testing signup', function () {
 
                     user.should.not.be.undefined;
                     user.data.should.be.eql(newUserData);
+
+                    done();
+                });
+            });
+        });
+    });
+
+    describe("add-group", function () {
+        var group = 'confirmed_email';
+
+        it("should add group", function (done) {
+            request(app)
+                .post('/api/auth/add-group')
+                .send({
+                    userId: userAuthDataRefresh.userId,
+                    group: group
+                })
+                .expect(200, done);
+        });
+
+        it("should return GROUP_NOT_FOUND", function (done) {
+            request(app)
+                .post('/api/auth/add-group')
+                .send({
+                    userId: userAuthDataRefresh.userId,
+                    group: "test"
+                })
+                .expect(400, 'GROUP_NOT_FOUND', done);
+        });
+
+        it("should contain group in db", function (done) {
+            waitDb(function () { // в БД иногда не успевает записаться
+                db.users.find(userAuthDataRefresh.userId, function (err, user) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    user.should.not.be.undefined;
+                    user.groups.should.be.containEql(group);
 
                     done();
                 });
