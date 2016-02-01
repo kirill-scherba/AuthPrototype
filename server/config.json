@@ -51,5 +51,11 @@
       "htmlBody": "Hi, <br/> <br/> You recently requested recovery password for your account. Your new password: {password}.",
       "plaintextBody": "Hi,\n\nYou recently requested a new password for your account. Your new password: {password}."
     }
+  },
+  "logger": {
+    "tcp": true,
+    "host": "cox-stor.bingo-boom.ru",
+    "port": 6666,
+    "reconnectTimeout": 1000
   }
 }
