@@ -11,6 +11,7 @@
     "async": "^1.4.2",
     "body-parser": "^1.13.2",
     "express": "^4.13.1",
+    "logstash-client": "^1.0.0",
     "mysql2": "^0.15.8",
     "nconf": "^0.8.2",
     "node-uuid": "^1.4.3",

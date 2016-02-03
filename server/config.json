@@ -55,7 +55,6 @@
   "logger": {
     "tcp": true,
     "host": "cox-stor.bingo-boom.ru",
-    "port": 6666,
-    "reconnectTimeout": 1000
+    "port": 6666
   }
 }

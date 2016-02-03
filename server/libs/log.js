@@ -3,39 +3,20 @@
 const config = require('./config');
 
 if (config.get('logger:tcp') === true) {
-    const net = require('net');
-
-    let client;
-
-
-    let connect = function () {
-        console.log('connect');
-        client = net.connect({host: config.get('logger:host'), port: config.get('logger:port')}, () => { //'connect' listener
-            console.log('connected to server!');
-        });
-
-        client.on('end', () => {
-            console.log('disconnected from server');
-
-            client = null;
-            setTimeout(connect, config.get('logger:reconnectTimeout'));
-        });
-
-        client.on('error', (err) => {
-            console.log('tcp logger error', err);
-        });
-    };
-
-    connect();
-
+    const Logstash = require('logstash-client');
+    const client = new Logstash({
+        type: 'tcp',
+        host: config.get('logger:host'),
+        port: config.get('logger:port')
+    });
 
     let send = function (level, data) {
-        client.write(JSON.stringify({
-                loglevel: level,
-                time_local: Math.floor(Date.now() / 1000).toString(),
-                app: 'AuthServer',
-                data: data
-            }) + '\n');
+        client.send({
+            loglevel: level,
+            time_local: Math.floor(Date.now() / 1000).toString(),
+            app: 'AuthServer',
+            data: data
+        });
     };
 
 
