@@ -88,6 +88,8 @@ if (config.get('logger:tcp') === true) {
 
         var logRecord = {
             type: 'error',
+            app: 'AuthServer',
+            time_local: Math.floor(Date.now() / 1000).toString(),
             when: new Date(),
             error: error
         };
@@ -115,6 +117,8 @@ if (config.get('logger:tcp') === true) {
 
         var logRecord = {
             type: 'info',
+            app: 'AuthServer',
+            time_local: Math.floor(Date.now() / 1000).toString(),
             when: new Date()
         };
 
