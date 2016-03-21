@@ -13,7 +13,7 @@
   "storage": "mysql",
   "mysql": {
     "connectionLimit": 10,
-    "host": "10.15.56.124",
+    "host": "localhost",
     "user": "authUser",
     "password": "123",
     "database": "authPrototype"
@@ -54,7 +54,7 @@
   },
   "logger": {
     "tcp": true,
-    "host": "cox-stor.bingo-boom.ru",
+    "host": "localhost",
     "port": 6666
   }
 }

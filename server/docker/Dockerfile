@@ -23,8 +23,8 @@ RUN rm ./install.sh
 #
 # Build
 # cd authprototype/server
-# docker build --no-cache -t gitlab.ksproject.org:5000/teonet/auth -f docker/Dockerfile .
+# docker build --no-cache -t localhost:5000/auth -f docker/Dockerfile .
 #
 # Run watcher as an example
-# docker run -it --name auth -p 1234:1234 -p 8443:8443 -w /root/Projects/auth gitlab.ksproject.org:5000/teonet/auth node bin/www --port 1234
+# docker run -it --name auth -p 1234:1234 -p 8443:8443 -w /root/Projects/auth localhost:5000/auth node bin/www --port 1234
 #
