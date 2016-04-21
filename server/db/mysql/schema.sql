@@ -174,6 +174,22 @@ END//
 DELIMITER ;
 
 
+DELIMITER //
+CREATE DEFINER=`root`@`localhost` PROCEDURE `spAddGroup`(IN `_userId` VARCHAR(50), IN `_group` VARCHAR(50))
+BEGIN
+	DECLARE _groupId INT;
+	set _groupId=(select groupId from groups where name = _group);
+
+	if (_groupId is null) then
+		INSERT INTO `groups` (`name`) VALUES (_group);
+		set _groupId = LAST_INSERT_ID();
+	end if;
+
+	INSERT INTO `userGroup` (`userId`, `groupId`) VALUES (_userId, _groupId);
+END//
+DELIMITER ;
+
+
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
 /*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1, @OLD_FOREIGN_KEY_CHECKS) */;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
