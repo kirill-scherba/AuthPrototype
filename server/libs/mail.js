@@ -37,7 +37,7 @@ function send(mailOptions, callback) {
  * @public
  */
 function sendRestore(email, params, callback) {
-    var subject = config.get('restorePassword:textForEmail:subject');
+    var subject = utils.replaceByTemplate(config.get('restorePassword:textForEmail:subject'), params);
     var htmlBody = utils.replaceByTemplate(config.get('restorePassword:textForEmail:htmlBody'), params);
     var plaintextBody = utils.replaceByTemplate(config.get('restorePassword:textForEmail:plaintextBody'), params);
 
@@ -60,7 +60,7 @@ function sendRestore(email, params, callback) {
  * @public
  */
 function sendConfirmation(email, params, callback) {
-    var subject = config.get('verificationEmail:textForEmail:subject');
+    var subject = utils.replaceByTemplate(config.get('verificationEmail:textForEmail:subject'), params);
     var htmlBody = utils.replaceByTemplate(config.get('verificationEmail:textForEmail:htmlBody'), params);
     var plaintextBody = utils.replaceByTemplate(config.get('verificationEmail:textForEmail:plaintextBody'), params);
 
