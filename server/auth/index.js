@@ -6,6 +6,7 @@ var utils = require('./../libs/utils');
 var config = require('./../libs/config');
 var log = require('./../libs/log');
 var decryptBody = require('./../middleware/decryptBody');
+var checkTrust = require('./../middleware/checkTrust');
 var helper = require('./helper');
 var mail = require('./../libs/mail');
 
@@ -323,29 +324,36 @@ router.post('/refresh',
 
 
 /**
- * User data for users with trusted ip and clientId and userId for other users
+ * clientId and userId
  * @return 200 + user data
  * @return 401
  */
 router.get('/me',
     passport.authenticate('bearer', {session: false}),
     function (req, res) {
-        var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-        if (config.get('trustedIp').indexOf(ip) !== -1) {
-            res.json({
-                clientId: req.user.clientId,
-                clientData: req.user.clientData,
-                userId: req.user.userId,
-                email: req.user.email,
-                username: req.user.username,
-                groups: req.user.groups
-            });
-        } else {
-            res.json({
-                clientId: req.user.clientId,
-                userId: req.user.userId
-            });
-        }
+        res.json({
+            clientId: req.user.clientId,
+            userId: req.user.userId
+        });
+    });
+
+/**
+ * User data for users with trusted ip and clientId and userId for other users
+ * @return 200 + user data
+ * @return 401
+ */
+router.get('/me-trusted',
+    checkTrust,
+    passport.authenticate('bearer', {session: false}),
+    function (req, res) {
+        res.json({
+            clientId: req.user.clientId,
+            clientData: req.user.clientData,
+            userId: req.user.userId,
+            email: req.user.email,
+            username: req.user.username,
+            groups: req.user.groups
+        });
     });
 
 
@@ -358,13 +366,8 @@ router.get('/me',
  * @return 500
  */
 router.post('/add-group',
+    checkTrust,
     function (req, res) {
-        var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-        if (config.get('trustedIp').indexOf(ip) === -1) {
-            res.status(401).end();
-            return;
-        }
-
         db.users.setGroup(req.body.userId, req.body.group, function (err) {
             if (err && err.message === 'GROUP_NOT_FOUND') {
                 res.status(400).end('GROUP_NOT_FOUND');

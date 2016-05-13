@@ -30,8 +30,17 @@
     },
     "from": "support@example.com"
   },
-  "trustedIp": [
-    "::ffff:127.0.0.1"
+  "trusted": [
+    {
+      "ip": "::ffff:127.0.0.1"
+    },
+    {
+      "secret": "secret"
+    },
+    {
+      "ip": "::ffff:127.0.0.1",
+      "secret": "secret"
+    }
   ],
   "verificationEmail": {
     "textForBrowser": {
@@ -53,7 +62,7 @@
     }
   },
   "logger": {
-    "tcp": true,
+    "tcp": false,
     "host": "localhost",
     "port": 6666
   }

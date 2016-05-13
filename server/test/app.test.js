@@ -527,10 +527,22 @@ describe('integration testing signup', function () {
     describe("add-group", function () {
         var group = 'confirmed_email';
 
+        it("should return 401", function (done) {
+            request(app)
+                .post('/api/auth/add-group')
+                .send({
+                    secret: 'secret1',
+                    userId: userAuthDataRefresh.userId,
+                    group: group
+                })
+                .expect(401, done);
+        });
+
         it("should add group", function (done) {
             request(app)
                 .post('/api/auth/add-group')
                 .send({
+                    secret: 'secret',
                     userId: userAuthDataRefresh.userId,
                     group: group
                 })
