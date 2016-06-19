@@ -13,22 +13,20 @@
   "storage": "mysql",
   "mysql": {
     "connectionLimit": 10,
-    "host": "localhost",
+    "host": "192.168.99.100",
     "user": "authUser",
     "password": "123",
     "database": "authPrototype"
   },
   "smtp": {
     "options": {
-      "host": "example.com",
-      "port": 25,
-      "ignoreTLS": true,
+      "service": "Gmail",
       "auth": {
-        "user": "support@example.com",
-        "pass": "secret"
+        "user": "webm4team@gmail.com",
+        "pass": "b3UraQ3ZUPrePReh"
       }
     },
-    "from": "support@example.com"
+    "from": "webm4team@gmail.com"
   },
   "trusted": [
     {
