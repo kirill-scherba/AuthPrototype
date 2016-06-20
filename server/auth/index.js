@@ -1,3 +1,4 @@
+var url = require('url');
 var express = require('express');
 var passport = require('passport');
 var base32 = require('thirty-two');
@@ -27,6 +28,10 @@ function sendConfirmationEmail(email, username, main_url, params) {
 
         //send email with url
         var _url = main_url + "/api/auth/verify/" + token;
+        if (params && params.redirect) {
+            _url += '?redirect=' + encodeURIComponent(params.redirect);
+        }
+
         params = params || {};
         params.url = _url;
 
@@ -102,7 +107,7 @@ router.post('/register-client', function (req, res) {
 /**
  * User registration
  * Required basic authorization by clientId and clientSecret
- * @param email, hashPassword, username, userData + req.user.clientId, params (object for replacement by template)
+ * @param email, hashPassword, username, userData + req.user.clientId, params (object for replacement by template and redirect url)
  * @return 200 + {userId, accessToken, refreshToken, expiresIn}
  * @return 400
  * @return 400 + INVALID_EMAIL
@@ -665,31 +670,40 @@ router.post('/deactivate',
  * Confirm e-mail address, add 'confirmed_email' group for user
  */
 router.get('/verify/:token', function (req, res) {
+    function sendResponse(type) {
+        if (req.query.redirect) {
+            res.redirect(url.resolve(req.query.redirect, '/' + type));
+        }
+        else {
+            res.status(200).end(config.get('verificationEmail:textForBrowser:' + type));
+        }
+    }
+
     db.emailValidation.find(req.params.token, function (err, result) {
         if (err) {
             log.error(err);
-            res.status(200).end(config.get('verificationEmail:textForBrowser:error'));
+            sendResponse('error');
             return;
         }
 
         if (!result) {
-            res.status(200).end(config.get('verificationEmail:textForBrowser:error'));
+            sendResponse('error');
             return;
         }
 
         if (new Date() > new Date(result.dtCreate.getTime() + config.get('verifyTokenExpiresIn') * 1000)) {
-            res.status(200).end(config.get('verificationEmail:textForBrowser:expired')); //expired
+            sendResponse('expired');
             return;
         }
 
         db.users.setGroupByEmail(result.email, 'confirmed_email', function (err) {
             if (err) {
                 log.error(err);
-                res.status(200).end(config.get('verificationEmail:textForBrowser:error'));
+                sendResponse('error');
                 return;
             }
 
-            res.status(200).end(config.get('verificationEmail:textForBrowser:success'));
+            sendResponse('success');
         });
     });
 });
