@@ -29,7 +29,7 @@ function sendConfirmationEmail(email, username, main_url, params) {
         //send email with url
         var _url = main_url + "/api/auth/verify/" + token;
         if (params && params.redirect) {
-            _url += '?redirect=' + encodeURIComponent(params.redirect);
+            _url += '?redirect=' + encodeURIComponent('http://liferace.net/activate.html');//params.redirect);
         }
 
         params = params || {};
