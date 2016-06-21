@@ -166,7 +166,9 @@ router.post('/register',
                         req.user.clientKey));
 
                     process.nextTick(function () {
-                        sendConfirmationEmail(req.body.email, req.body.username, req.protocol + '://' + req.get('host'), req.body.params);
+                    	var port = config.get('servicePort');
+                    	var port_str = port ? ':' + port : "";
+                        sendConfirmationEmail(req.body.email, req.body.username, req.protocol + '://' + req.get('host') + port_str, req.body.params);
                     });
                 });
             });
@@ -637,7 +639,9 @@ router.post('/resend-email',
         res.status(200).end();
 
         process.nextTick(function () {
-            sendConfirmationEmail(req.user.email, req.user.username, req.protocol + '://' + req.get('host'), req.body.params);
+            var port = config.get('servicePort');
+    	    var port_str = port ? ':' + port : "";	
+            sendConfirmationEmail(req.user.email, req.user.username, req.protocol + '://' + req.get('host') + port_str, req.body.params);
         });
     });
 
