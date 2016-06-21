@@ -1,4 +1,4 @@
-var url = require('url');
+//var url = require('url');
 var express = require('express');
 var passport = require('passport');
 var base32 = require('thirty-two');
@@ -28,10 +28,10 @@ function sendConfirmationEmail(email, username, main_url, params) {
 
         //send email with url
         var _url = main_url + "/api/auth/verify/" + token;
-        if (params && params.redirect) {
-            _url += '?redirect=' + encodeURIComponent('http://liferace.net/activate.html');//params.redirect);
-        }
-
+//        if (params && params.redirect) {
+//            _url += '?redirect=' + encodeURIComponent('http://liferace.net/activate.html');//params.redirect);
+//        }
+//
         params = params || {};
         params.url = _url;
 
@@ -670,7 +670,7 @@ router.post('/deactivate',
  * Confirm e-mail address, add 'confirmed_email' group for user
  */
 router.get('/verify/:token', function (req, res) {
-    function sendResponse(type) {
+/*    function sendResponse(type) {
         if (req.query.redirect) {
             res.redirect(url.resolve(req.query.redirect, '/' + type));
         }
@@ -678,32 +678,37 @@ router.get('/verify/:token', function (req, res) {
             res.status(200).end(config.get('verificationEmail:textForBrowser:' + type));
         }
     }
-
+*/
     db.emailValidation.find(req.params.token, function (err, result) {
         if (err) {
             log.error(err);
-            sendResponse('error');
+	    res.status(200).end(config.get('verificationEmail:textForBrowser:error'));
+//            sendResponse('error');
             return;
         }
 
         if (!result) {
-            sendResponse('error');
+	    res.status(200).end(config.get('verificationEmail:textForBrowser:error'));
+//            sendResponse('error');
             return;
         }
 
         if (new Date() > new Date(result.dtCreate.getTime() + config.get('verifyTokenExpiresIn') * 1000)) {
-            sendResponse('expired');
+	    res.status(200).end(config.get('verificationEmail:textForBrowser:expired')); //expired
+//            sendResponse('expired');
             return;
         }
 
         db.users.setGroupByEmail(result.email, 'confirmed_email', function (err) {
             if (err) {
                 log.error(err);
-                sendResponse('error');
+		res.status(200).end(config.get('verificationEmail:textForBrowser:error'));
+//                sendResponse('error');
                 return;
             }
 
-            sendResponse('success');
+	    res.status(200).end(config.get('verificationEmail:textForBrowser:success'));
+//            sendResponse('success');
         });
     });
 });
