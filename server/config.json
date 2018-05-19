@@ -20,9 +20,7 @@
   },
   "smtp": {
     "options": {
-      "host": "example.com",
-      "port": 25,
-      "ignoreTLS": true,
+      "service": "Gmail",
       "auth": {
         "user": "support@example.com",
         "pass": "secret"

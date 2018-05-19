@@ -22,6 +22,7 @@ describe('integration testing signup', function () {
     var newUsername = "new bob";
     var password = "secret";
     var language = "en";
+    var redirectUrl = "https://www.google.com/";
 
     var passwordNew = "password";
 
@@ -173,7 +174,8 @@ describe('integration testing signup', function () {
                     email: email,
                     hashPassword: utils.getHash(password),
                     username: username,
-                    userData: {language: language}
+                    userData: {language: language},
+                    params: {redirect: redirectUrl}
                 }, clientKey))
                 .expect(200)
                 .end(function (err, res) {
